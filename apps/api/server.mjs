@@ -52,6 +52,13 @@ function errorResponse(req, res, status, message) {
   jsonResponse(req, res, status, { error: message });
 }
 
+function apiErrorResponse(req, res, error) {
+  jsonResponse(req, res, error.status || 500, {
+    error: error.message || 'api request failed',
+    duplicateCandidates: error.duplicateCandidates || [],
+  });
+}
+
 async function parseBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -194,7 +201,7 @@ export async function createApp(options = {}) {
       }
       await serveStatic(req, res, url);
     } catch (error) {
-      errorResponse(req, res, 500, error.message);
+      apiErrorResponse(req, res, error);
     }
   });
   server.store = store;

@@ -36,6 +36,84 @@ function listFrom(value) {
     .filter(Boolean);
 }
 
+function normalizeForCompare(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+function cjkShingles(text) {
+  const shingles = [];
+  const runs = text.match(/[\u3400-\u9fff]{2,}/g) || [];
+  for (const run of runs) {
+    if (run.length <= 6) shingles.push(run);
+    for (let index = 0; index < run.length - 1; index += 1) {
+      shingles.push(run.slice(index, index + 2));
+    }
+    for (let index = 0; index < run.length - 2; index += 1) {
+      shingles.push(run.slice(index, index + 3));
+    }
+  }
+  return shingles;
+}
+
+function comparisonText(input = {}) {
+  const payload = input.payload || {};
+  return [
+    input.title,
+    input.summary,
+    input.role,
+    input.assetType,
+    input.primaryCategory,
+    input.url,
+    payload.title,
+    payload.summary,
+    payload.role,
+    payload.assetType,
+    payload.primaryCategory,
+    payload.url,
+    ...(input.tools || payload.tools || []),
+    ...(input.tasks || payload.tasks || []),
+    ...(input.tags || payload.tags || []),
+    ...(input.painPoints || payload.painPoints || []),
+  ].join(' ');
+}
+
+function tokenSet(input = {}) {
+  const text = normalizeForCompare(comparisonText(input));
+  const tokens = new Set();
+  for (const token of text.split(/\s+/).filter(Boolean)) {
+    if (/^[a-z0-9][a-z0-9_-]{1,}$/i.test(token)) tokens.add(token);
+    if (/[\u3400-\u9fff]/.test(token)) cjkShingles(token).forEach((item) => tokens.add(item));
+  }
+  return tokens;
+}
+
+function normalizedUrl(value) {
+  return String(value ?? '').trim().replace(/\/+$/, '').toLowerCase();
+}
+
+function similarityScore(input, candidate) {
+  const inputTokens = tokenSet(input);
+  const candidateTokens = tokenSet(candidate);
+  if (inputTokens.size === 0 || candidateTokens.size === 0) return { score: 0, overlap: [] };
+  const overlap = [...inputTokens].filter((token) => candidateTokens.has(token));
+  const base = overlap.length / Math.max(8, Math.min(inputTokens.size, candidateTokens.size));
+  const titleBoost = normalizeForCompare(input.title) && normalizeForCompare(input.title) === normalizeForCompare(candidate.title) ? 0.55 : 0;
+  const urlBoost = normalizedUrl(input.url) && normalizedUrl(input.url) === normalizedUrl(candidate.url) ? 0.8 : 0;
+  const categoryBoost = input.primaryCategory && candidate.primaryCategory && input.primaryCategory === candidate.primaryCategory ? 0.08 : 0;
+  const roleBoost = input.role && candidate.role && input.role === candidate.role ? 0.06 : 0;
+  return { score: Math.min(1, base + titleBoost + urlBoost + categoryBoost + roleBoost), overlap };
+}
+
+function duplicateReason(match) {
+  if (match.urlMatched) return '工具或链接相同';
+  if (match.score >= 0.72) return '标题、岗位或摘要高度相似';
+  return '标题、摘要、岗位或关键词相似';
+}
+
 function createId(prefix) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -94,6 +172,7 @@ function normalizeSubmission(input = {}, options = {}) {
 }
 
 function rowToSubmission(row) {
+  const payload = parseJson(row.payload_json, {});
   return {
     id: row.id,
     source: row.source,
@@ -106,7 +185,10 @@ function rowToSubmission(row) {
     summary: row.summary,
     url: row.url,
     sensitiveFlags: parseJson(row.sensitive_flags_json, []),
-    payload: parseJson(row.payload_json, {}),
+    payload,
+    duplicateCandidates: payload.duplicateCandidates || [],
+    duplicateMode: payload.duplicateMode || '',
+    targetAssetId: payload.targetAssetId || '',
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     reviewedAt: row.reviewed_at,
@@ -316,10 +398,53 @@ function createStore(db) {
       return row ? rowToSubmission(row) : null;
     },
 
+    findSimilarAssets(input = {}, options = {}) {
+      const threshold = options.threshold ?? 0.32;
+      const limit = options.limit ?? 3;
+      const includePending = options.includePending ?? true;
+      const excludeSubmissionId = options.excludeSubmissionId || '';
+      const assets = this.listAssets().map((asset) => ({ ...asset, status: 'approved', sourceType: 'asset' }));
+      const pending = includePending
+        ? this.listSubmissions('pending')
+            .filter((submission) => submission.id !== excludeSubmissionId)
+            .map((submission) => ({ ...submission, status: 'pending', sourceType: 'submission' }))
+        : [];
+      return assets
+        .concat(pending)
+        .map((candidate) => {
+          const similarity = similarityScore(input, candidate);
+          const urlMatched = Boolean(normalizedUrl(input.url) && normalizedUrl(input.url) === normalizedUrl(candidate.url));
+          return {
+            id: candidate.id,
+            title: candidate.title,
+            status: candidate.status,
+            sourceType: candidate.sourceType,
+            role: candidate.role,
+            primaryCategory: candidate.primaryCategory,
+            summary: candidate.summary,
+            score: Number(similarity.score.toFixed(3)),
+            reason: duplicateReason({ score: similarity.score, urlMatched }),
+          };
+        })
+        .filter((candidate) => candidate.score >= threshold)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit);
+    },
+
     createSubmission(input, options = {}) {
       const submission = normalizeSubmission(input, options);
       if (!submission.summary && !submission.url) {
         throw new Error('summary or url is required');
+      }
+      const duplicateCandidates = this.findSimilarAssets(submission);
+      submission.duplicateCandidates = duplicateCandidates;
+      if (duplicateCandidates.length > 0) {
+        const targetAsset = duplicateCandidates.find((candidate) => candidate.status === 'approved');
+        submission.payload.duplicateCandidates = duplicateCandidates;
+        submission.payload.duplicateMode = cleanText(input.duplicateMode, 80) || (targetAsset ? 'update_existing' : 'similar_pending');
+        submission.payload.targetAssetId = cleanText(input.targetAssetId, 100) || targetAsset?.id || '';
+        submission.duplicateMode = submission.payload.duplicateMode;
+        submission.targetAssetId = submission.payload.targetAssetId;
       }
       insertSubmission.run(
         submission.id,
@@ -399,10 +524,27 @@ function createStore(db) {
     approveSubmission(id, input = {}) {
       const submission = this.getSubmission(id);
       if (!submission) throw new Error('submission not found');
+      const duplicateCandidates = this.findSimilarAssets(
+        {
+          ...submission,
+          ...input,
+          title: cleanText(input.title, 160) || submission.title,
+          summary: cleanText(input.summary, 1400) || submission.summary,
+        },
+        { includePending: false, excludeSubmissionId: submission.id },
+      );
+      const targetAssetId = cleanText(input.targetAssetId || submission.targetAssetId, 100);
+      const duplicateMode = cleanText(input.duplicateMode || submission.duplicateMode, 80);
+      if (duplicateCandidates.length > 0 && duplicateMode !== 'update_existing') {
+        const error = new Error('possible duplicate asset');
+        error.status = 409;
+        error.duplicateCandidates = duplicateCandidates;
+        throw error;
+      }
       const timestamp = nowIso();
       const payload = {
         ...submission.payload,
-        id: `asset-${submission.id}`,
+        id: targetAssetId && duplicateMode === 'update_existing' ? targetAssetId : `asset-${submission.id}`,
         title: cleanText(input.title, 160) || submission.title,
         status: 'approved',
         role: cleanText(input.role, 100) || submission.role,
@@ -418,27 +560,56 @@ function createStore(db) {
         boundary: cleanText(input.boundary, 1000) || submission.payload.boundary || '使用前请人工确认边界。',
         owner: cleanText(input.owner, 100) || submission.submitter,
       };
-      insertAsset.run(
-        payload.id,
-        payload.title,
-        'approved',
-        payload.role,
-        payload.assetType,
-        payload.primaryCategory,
-        payload.summary,
-        toJson(payload.tools),
-        toJson(payload.tasks),
-        toJson(payload.inputs),
-        toJson(payload.outcomes),
-        toJson(payload.workflow),
-        toJson(payload.painPoints),
-        payload.boundary,
-        payload.owner,
-        submission.id,
-        toJson(payload),
-        timestamp,
-        timestamp,
-      );
+      if (targetAssetId && duplicateMode === 'update_existing') {
+        db.prepare(`
+          UPDATE assets SET
+            title = ?, role = ?, asset_type = ?, primary_category = ?, summary = ?,
+            tools_json = ?, tasks_json = ?, inputs_json = ?, outcomes_json = ?,
+            workflow_json = ?, pain_points_json = ?, boundary = ?, owner = ?,
+            source_submission_id = ?, payload_json = ?, updated_at = ?
+          WHERE id = ?
+        `).run(
+          payload.title,
+          payload.role,
+          payload.assetType,
+          payload.primaryCategory,
+          payload.summary,
+          toJson(payload.tools),
+          toJson(payload.tasks),
+          toJson(payload.inputs),
+          toJson(payload.outcomes),
+          toJson(payload.workflow),
+          toJson(payload.painPoints),
+          payload.boundary,
+          payload.owner,
+          submission.id,
+          toJson(payload),
+          timestamp,
+          targetAssetId,
+        );
+      } else {
+        insertAsset.run(
+          payload.id,
+          payload.title,
+          'approved',
+          payload.role,
+          payload.assetType,
+          payload.primaryCategory,
+          payload.summary,
+          toJson(payload.tools),
+          toJson(payload.tasks),
+          toJson(payload.inputs),
+          toJson(payload.outcomes),
+          toJson(payload.workflow),
+          toJson(payload.painPoints),
+          payload.boundary,
+          payload.owner,
+          submission.id,
+          toJson(payload),
+          timestamp,
+          timestamp,
+        );
+      }
       db.prepare('UPDATE submissions SET status = ?, updated_at = ?, approved_at = ? WHERE id = ?').run('approved', timestamp, timestamp, id);
       return rowToAsset(db.prepare('SELECT * FROM assets WHERE id = ?').get(payload.id));
     },

@@ -111,6 +111,12 @@
     .submission-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .submission-actions .btn { min-height: 34px; padding: 0 10px; font-size: 12px; }
     .pool-message { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .duplicate-hint { display: grid; gap: 8px; border: 1px solid #f3d28b; border-radius: 8px; padding: 12px; background: var(--amber-soft); color: #6b4500; font-size: 13px; line-height: 1.55; }
+    .duplicate-hint.hidden { display: none; }
+    .duplicate-hint strong { color: #523400; }
+    .duplicate-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+    .duplicate-list li { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid rgba(149, 96, 10, .18); padding-top: 6px; }
+    .duplicate-list span { color: #7a4e08; font-size: 12px; white-space: nowrap; }
     .admin-settings { margin-top: 12px; padding: 0; overflow: hidden; }
     .admin-settings summary { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 14px; cursor: pointer; font-weight: 760; }
     .admin-settings summary::after { content: "展开"; color: var(--soft); font-size: 12px; font-weight: 760; }
@@ -245,19 +251,19 @@
           <article class="action-card primary">
             <div class="action-top">
               <div class="number">1</div>
-              <span class="tag skill">投稿</span>
+              <span class="tag skill">先查重</span>
             </div>
             <div>
               <p class="eyebrow">上传沉淀</p>
-              <h3>上传我的工作流 / Skill</h3>
-              <p>让自己的 Codex 整理 SOP、skill、插件、脚本和踩坑经验。</p>
+              <h3>一键生成投稿草稿</h3>
+              <p>先查重，再生成投稿草稿；相似内容会改成补充已有资产。</p>
             </div>
             <div class="field-stack">
               <label><span>我的岗位</span><input id="uploadRoleInput" value="短视频运营" /></label>
               <label><span>我要沉淀的内容</span><input id="uploadTopicInput" value="我当前工作里已经跑通的工具、流程和 skill" /></label>
             </div>
             <button class="btn block" id="openUploadCodex" type="button">复制并打开 Codex</button>
-            <p class="hint">投稿先进入待审核池。</p>
+            <p class="hint">这里只生成草稿，不直接发布。</p>
           </article>
 
           <article class="action-card">
@@ -318,6 +324,7 @@
               <label class="wide"><span>工具或链接，可不填</span><input id="submitUrlInput" placeholder="https://... 或工具名称" /></label>
               <label class="wide"><span>一句话说明怎么用</span><textarea id="submitSummaryInput" placeholder="适合谁 / 解决什么问题 / 怎么做 / 人工要检查什么。提交前删掉账号、密码、密钥/token、客户信息和公司内部路径。"></textarea></label>
             </div>
+            <div class="duplicate-hint hidden" id="duplicateHint" aria-live="polite"></div>
             <button class="btn green block" id="submitToPoolButton" type="button">提交到待审核投稿池</button>
             <p class="pool-message" id="submitPoolMessage">提交后会出现在右侧待审核池。</p>
           </div>
@@ -463,7 +470,8 @@
       backendAssets: [],
       backendSubmissions: [],
       backendStats: null,
-      backendOnline: false
+      backendOnline: false,
+      duplicateCandidates: []
     };
     let tutorialWheelLocked = false;
     const el = (id) => document.getElementById(id);
@@ -472,6 +480,123 @@
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
     });
     const valueOr = (value, fallback) => String(value || '').trim() || fallback;
+
+    function normalizeCompareText(value) {
+      return String(value || '').toLowerCase().replace(/https?:\/\/\S+/g, ' ').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    }
+
+    function cjkPieces(text) {
+      const pieces = [];
+      (text.match(/[\u3400-\u9fff]{2,}/g) || []).forEach(function (run) {
+        if (run.length <= 6) pieces.push(run);
+        for (let index = 0; index < run.length - 1; index += 1) pieces.push(run.slice(index, index + 2));
+        for (let index = 0; index < run.length - 2; index += 1) pieces.push(run.slice(index, index + 3));
+      });
+      return pieces;
+    }
+
+    function duplicateText(item) {
+      const payload = item.payload || {};
+      return [
+        item.title,
+        item.summary,
+        item.role,
+        item.assetType,
+        item.primaryCategory,
+        item.url,
+        payload.title,
+        payload.summary,
+        payload.role,
+        payload.primaryCategory,
+        join(item.tools || payload.tools),
+        join(item.tasks || payload.tasks),
+        join(item.tags || payload.tags),
+        join(item.painPoints || payload.painPoints)
+      ].join(' ');
+    }
+
+    function duplicateTokens(item) {
+      const text = normalizeCompareText(duplicateText(item));
+      const tokens = new Set();
+      text.split(/\s+/).filter(Boolean).forEach(function (token) {
+        if (/^[a-z0-9][a-z0-9_-]{1,}$/i.test(token)) tokens.add(token);
+        if (/[\u3400-\u9fff]/.test(token)) cjkPieces(token).forEach(function (piece) { tokens.add(piece); });
+      });
+      return tokens;
+    }
+
+    function localDuplicateCandidates(draft) {
+      const draftTokens = duplicateTokens(draft);
+      if (draftTokens.size === 0) return [];
+      const candidates = allAssets().map(function (asset) {
+        return { ...asset, status: 'approved', sourceType: 'asset' };
+      }).concat(state.backendSubmissions.map(function (submission) {
+        return { ...submission, status: submission.status || 'pending', sourceType: 'submission' };
+      }));
+      return candidates.map(function (candidate) {
+        const candidateTokens = duplicateTokens(candidate);
+        const overlap = Array.from(draftTokens).filter(function (token) { return candidateTokens.has(token); });
+        const urlMatched = draft.url && candidate.url && draft.url.replace(/\/+$/, '') === candidate.url.replace(/\/+$/, '');
+        const baseScore = overlap.length / Math.max(8, Math.min(draftTokens.size, candidateTokens.size || 8));
+        const categoryBoost = draft.primaryCategory && draft.primaryCategory === candidate.primaryCategory ? .08 : 0;
+        const roleBoost = draft.role && draft.role === candidate.role ? .06 : 0;
+        const score = Math.min(1, baseScore + categoryBoost + roleBoost + (urlMatched ? .8 : 0));
+        return {
+          id: candidate.id,
+          title: candidate.title,
+          status: candidate.status,
+          sourceType: candidate.sourceType,
+          role: candidate.role,
+          primaryCategory: candidate.primaryCategory,
+          score,
+          reason: urlMatched ? '工具或链接相同' : '标题、摘要、岗位或关键词相似'
+        };
+      }).filter(function (candidate) {
+        return candidate.score >= .32;
+      }).sort(function (a, b) {
+        return b.score - a.score;
+      }).slice(0, 3);
+    }
+
+    function currentSubmissionDraft() {
+      return {
+        title: el('submitTitleInput').value,
+        submitter: el('submitterInput').value,
+        role: el('submitRoleInput').value,
+        primaryCategory: el('submitCategoryInput').value,
+        url: el('submitUrlInput').value,
+        summary: el('submitSummaryInput').value
+      };
+    }
+
+    function renderDuplicateHint(candidates = state.duplicateCandidates) {
+      const box = el('duplicateHint');
+      if (!box) return;
+      state.duplicateCandidates = candidates || [];
+      if (!state.duplicateCandidates.length) {
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+      }
+      box.classList.remove('hidden');
+      const hasApprovedTarget = state.duplicateCandidates.some(function (candidate) { return candidate.status === 'approved'; });
+      box.innerHTML = '<strong>重复检查：可能已经有类似资产。</strong>' +
+        '<p class="pool-message">' + (hasApprovedTarget
+          ? '这次会按“补充已有资产 / 更新已有资产”进入审核，不会直接当作全新资产发布。'
+          : '这次和待审核池内容相似，审核时请合并判断，不要重复发布。') + '</p>' +
+        '<ul class="duplicate-list">' + state.duplicateCandidates.map(function (candidate) {
+          return '<li><b>' + escapeHtml(candidate.title) + '</b><span>' + escapeHtml(candidate.status === 'approved' ? '正式资产' : '待审核') + '</span></li>';
+        }).join('') + '</ul>';
+    }
+
+    function refreshDuplicateHint() {
+      const draft = currentSubmissionDraft();
+      if (!draft.title.trim() && !draft.summary.trim() && !draft.url.trim()) {
+        renderDuplicateHint([]);
+        return;
+      }
+      renderDuplicateHint(localDuplicateCandidates(draft));
+    }
 
     function cleanApiBase() {
       return String(state.apiBase || '').trim().replace(/\/+$/, '');
@@ -652,6 +777,11 @@
         '我的岗位：' + role,
         '我要沉淀的内容：' + topic,
         '',
+        '重要：先查重，再生成投稿草稿。',
+        '请先打开并读取资产库网站里的正式资产列表、实时投稿池和 GitHub 仓库，判断有没有相似资产或待审核投稿。',
+        '如果发现相似内容，不要把它当成全新投稿；请输出“补充已有资产 / 更新已有资产”的草稿，并说明建议补充到哪一条已有资产。',
+        '如果没有相似内容，再输出“新资产投稿草稿”。',
+        '',
         '请先在我当前项目或我提供的材料里查找：好用的 skill、工作 SOP、提示词包、小脚本、插件、工具链接、自动化流程、失败卡点和人工边界。',
         '然后整理成可以粘贴到网站“实时投稿池”的一条投稿。',
         '',
@@ -661,6 +791,7 @@
         'GitHub 仓库：' + GITHUB_REPO_URL,
         '',
         '请按这些字段输出：资产标题、主分类、适用岗位、资产类型、工具或链接、解决任务、适合场景、输入材料、使用步骤、产出结果、卡点、失败处理、人工边界、是否可生成 Skill、是否包含敏感信息。',
+        '如果是补充已有资产，请额外输出：相似资产标题、为什么相似、这次新增/修正了什么、建议更新哪些字段。',
         '',
         '提交前必须检查：不要包含账号、密码、token、客户信息、公司私有路径、未授权飞书链接。'
       ].join('\n');
@@ -846,10 +977,18 @@
         const sensitive = (submission.sensitiveFlags || []).length
           ? '<span class="tag review">可能含敏感信息</span>'
           : '<span class="tag skill">待审核</span>';
+        const duplicateCandidates = submission.duplicateCandidates || [];
+        const duplicateBadge = duplicateCandidates.length
+          ? '<span class="tag prompt">补充已有资产 / 更新已有资产</span>'
+          : '';
+        const duplicateNote = duplicateCandidates.length
+          ? '<p class="hint">重复检查：可能关联 “' + escapeHtml(duplicateCandidates[0].title) + '”，发布时会优先更新已有资产。</p>'
+          : '';
         return '<article class="submission-card">' +
-          '<div class="meta">' + sensitive + '<span class="tag">' + escapeHtml(submission.primaryCategory || '待分类') + '</span><span class="tag">' + escapeHtml(submission.role || '待判断') + '</span></div>' +
+          '<div class="meta">' + sensitive + duplicateBadge + '<span class="tag">' + escapeHtml(submission.primaryCategory || '待分类') + '</span><span class="tag">' + escapeHtml(submission.role || '待判断') + '</span></div>' +
           '<h3>' + escapeHtml(submission.title) + '</h3>' +
           '<p>' + escapeHtml(submission.summary) + '</p>' +
+          duplicateNote +
           (submission.url ? '<p class="hint">工具或链接：' + escapeHtml(submission.url) + '</p>' : '') +
           '<p class="hint">提交人：' + escapeHtml(submission.submitter || '运营同事') + ' · ' + escapeHtml((submission.createdAt || '').slice(0, 19).replace('T', ' ')) + '</p>' +
           '<div class="submission-actions">' +
@@ -896,6 +1035,7 @@
         state.backendAssets = data.assets || [];
         state.backendSubmissions = data.submissions || [];
         state.backendStats = data.stats || null;
+        refreshDuplicateHint();
         renderSubmissions();
         renderAssets();
         renderReviewSelect();
@@ -924,15 +1064,30 @@
         summary: el('submitSummaryInput').value,
         source: 'website-realtime-pool'
       };
+      const duplicateCandidates = localDuplicateCandidates(payload);
+      renderDuplicateHint(duplicateCandidates);
+      if (duplicateCandidates.length > 0) {
+        const targetAsset = duplicateCandidates.find(function (candidate) { return candidate.status === 'approved'; });
+        payload.duplicateMode = targetAsset ? 'update_existing' : 'similar_pending';
+        payload.targetAssetId = targetAsset ? targetAsset.id : '';
+        payload.duplicateCandidates = duplicateCandidates;
+      }
       if (!payload.title.trim() || !payload.summary.trim()) {
         setPoolMessage('请至少填写资产标题和一句话说明。', true);
         return;
       }
       try {
         setPoolMessage('正在提交到待审核投稿池...');
-        await apiFetch('/api/submissions', { method: 'POST', body: JSON.stringify(payload) });
+        const result = await apiFetch('/api/submissions', { method: 'POST', body: JSON.stringify(payload) });
         ['submitTitleInput', 'submitUrlInput', 'submitSummaryInput'].forEach(function (id) { el(id).value = ''; });
-        setPoolMessage('已提交。它现在只在待审核投稿池里，审核通过后才会进入正式资产库。');
+        renderDuplicateHint((result.submission && result.submission.duplicateCandidates) || []);
+        setPoolMessage(
+          duplicateCandidates.some(function (candidate) { return candidate.status === 'approved'; })
+            ? '已提交为“补充已有资产 / 更新已有资产”。审核通过后会更新已有资产，不会重复新建。'
+            : (duplicateCandidates.length
+              ? '已提交。它和待审核池里的内容相似，请审核时合并判断。'
+              : '已提交。它现在只在待审核投稿池里，审核通过后才会进入正式资产库。')
+        );
         await refreshRealtimePool();
       } catch (error) {
         setPoolMessage(error.message || '提交失败，请检查后端连接。', true);
@@ -960,7 +1115,11 @@
     async function publishSubmission(submissionId) {
       const submission = state.backendSubmissions.find(function (item) { return item.id === submissionId; });
       if (!submission) return;
-      if (!confirm('确认把“' + submission.title + '”发布到正式资产库吗？')) return;
+      const duplicate = (submission.duplicateCandidates || []).find(function (candidate) { return candidate.status === 'approved'; });
+      const message = duplicate
+        ? '确认把“' + submission.title + '”作为“补充已有资产 / 更新已有资产”发布吗？它会更新：' + duplicate.title
+        : '确认把“' + submission.title + '”发布到正式资产库吗？';
+      if (!confirm(message)) return;
       try {
         await apiFetch('/api/submissions/' + encodeURIComponent(submissionId) + '/approve', {
           method: 'POST',
@@ -970,10 +1129,12 @@
             role: submission.role,
             primaryCategory: submission.primaryCategory,
             summary: submission.summary,
-            owner: submission.submitter
+            owner: submission.submitter,
+            duplicateMode: duplicate ? 'update_existing' : '',
+            targetAssetId: duplicate ? duplicate.id : ''
           })
         });
-        setPoolMessage('已发布到正式资产库。下面的资产列表会同步出现这条内容。');
+        setPoolMessage(duplicate ? '已更新已有资产。下面的资产列表会同步显示最新内容。' : '已发布到正式资产库。下面的资产列表会同步出现这条内容。');
         await refreshRealtimePool();
       } catch (error) {
         setPoolMessage(error.message || '发布失败。', true);
@@ -1022,6 +1183,10 @@
       el('categoryFilter').addEventListener('change', function (event) {
         state.category = event.target.value;
         renderAssets();
+      });
+      ['submitTitleInput', 'submitRoleInput', 'submitCategoryInput', 'submitUrlInput', 'submitSummaryInput'].forEach(function (id) {
+        el(id).addEventListener('input', refreshDuplicateHint);
+        el(id).addEventListener('change', refreshDuplicateHint);
       });
       renderSubmissions();
       refreshRealtimePool();
