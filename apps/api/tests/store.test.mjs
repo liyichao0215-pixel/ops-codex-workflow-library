@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { test } from 'node:test';
 
 import { openStore } from '../store.mjs';
@@ -33,6 +34,32 @@ test('submission waits in pending pool before approval, then becomes an approved
     assert.equal(store.listAssets().some((item) => item.id === asset.id), true);
   } finally {
     store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('store backfills missing approved seed assets without clearing an existing database', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'ops-codex-store-'));
+  const dbPath = join(dir, 'test.sqlite');
+  const store = await openStore(dbPath);
+
+  try {
+    assert.equal(store.listAssets().some((item) => item.id === 'ops-asset-redaction-review'), true);
+  } finally {
+    store.close();
+  }
+
+  const db = new DatabaseSync(dbPath);
+  db.prepare("DELETE FROM assets WHERE id = 'ops-asset-redaction-review'").run();
+  const remaining = db.prepare("SELECT COUNT(*) AS count FROM assets WHERE status = 'approved'").get().count;
+  db.close();
+
+  const reopened = await openStore(dbPath);
+  try {
+    assert.equal(remaining > 0, true);
+    assert.equal(reopened.listAssets().some((item) => item.id === 'ops-asset-redaction-review'), true);
+  } finally {
+    reopened.close();
     await rm(dir, { recursive: true, force: true });
   }
 });

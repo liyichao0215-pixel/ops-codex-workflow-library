@@ -228,10 +228,8 @@ function migrate(db) {
 }
 
 function seedAssets(db) {
-  const existing = db.prepare('SELECT COUNT(*) AS count FROM assets').get();
-  if (existing.count > 0) return;
   const insert = db.prepare(`
-    INSERT INTO assets (
+    INSERT OR IGNORE INTO assets (
       id, title, status, role, asset_type, primary_category, summary,
       tools_json, tasks_json, inputs_json, outcomes_json, workflow_json,
       pain_points_json, boundary, owner, source_submission_id, payload_json,
