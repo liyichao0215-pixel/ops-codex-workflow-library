@@ -7,114 +7,157 @@
   <style>
     :root {
       color-scheme: light;
-      --ink: #172033;
-      --muted: #667085;
-      --line: #d9dee8;
-      --bg: #f6f7fa;
+      --ink: #17191f;
+      --muted: #69707d;
+      --soft: #8a93a3;
+      --line: #dfe3ea;
+      --line-strong: #c8ced9;
+      --bg: #f5f6f8;
       --panel: #ffffff;
-      --blue: #1f63d3;
-      --blue-soft: #eef4ff;
-      --green: #13795b;
-      --green-soft: #edf8f3;
-      --amber: #9a6200;
-      --amber-soft: #fff8e7;
-      --slate: #344054;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --panel-soft: #fafbfc;
+      --dark: #111318;
+      --blue: #2454c6;
+      --blue-soft: #edf2ff;
+      --green: #17745b;
+      --green-soft: #eaf7f1;
+      --amber: #95600a;
+      --amber-soft: #fff6df;
+      --violet: #6941c6;
+      --violet-soft: #f4f0ff;
+      --shadow: 0 18px 48px rgba(25, 30, 45, .08);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; color: var(--ink); background: var(--bg); }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--bg); letter-spacing: 0; }
     body.modal-open { overflow: hidden; }
     button, input, select, textarea { font: inherit; }
-    a { color: inherit; }
-    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 22px 0 36px; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
-    .topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 8px; background: #172554; color: white; font-weight: 800; }
-    .eyebrow { margin: 0 0 5px; color: var(--blue); font-size: 12px; font-weight: 760; letter-spacing: 0; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
     h1, h2, h3, p { margin-top: 0; }
-    h1 { margin-bottom: 0; font-size: 24px; line-height: 1.2; }
-    h2 { margin-bottom: 10px; font-size: 23px; line-height: 1.35; }
-    h3 { margin-bottom: 8px; font-size: 17px; line-height: 1.35; }
-    p { color: var(--muted); line-height: 1.65; }
-    .link-pill, .tutorial-entry { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; background: white; color: var(--slate); font-size: 13px; text-decoration: none; white-space: nowrap; }
-    .tutorial-entry { min-height: 38px; color: #ffffff; background: #172033; cursor: pointer; font-weight: 720; }
-    .tutorial-entry::before { content: "?"; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, .18); font-size: 12px; }
-    .hero { margin-bottom: 16px; padding: 22px; border: 1px solid var(--line); border-radius: 8px; background: white; }
-    .hero-copy { max-width: 780px; }
-    .hero-copy p { margin-bottom: 0; }
-    .trial-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
-    .trial-item { border: 1px solid #d6e0f5; border-radius: 8px; padding: 11px; background: #f8fbff; }
-    .trial-item strong { display: block; margin-bottom: 4px; font-size: 14px; }
+    h1 { margin-bottom: 0; font-size: clamp(30px, 4vw, 54px); line-height: 1.02; font-weight: 820; letter-spacing: 0; }
+    h2 { margin-bottom: 8px; font-size: 22px; line-height: 1.25; font-weight: 780; letter-spacing: 0; }
+    h3 { margin-bottom: 8px; font-size: 16px; line-height: 1.35; font-weight: 760; letter-spacing: 0; }
+    p { color: var(--muted); line-height: 1.62; }
+    .workspace-layout { min-height: 100vh; display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 0; }
+    .sidebar-nav { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: #fbfcfd; padding: 18px; }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .mark { width: 42px; height: 42px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 8px; background: var(--dark); color: #fff; font-weight: 820; }
+    .brand-title { display: grid; gap: 2px; min-width: 0; }
+    .eyebrow { margin: 0 0 5px; color: var(--blue); font-size: 12px; font-weight: 760; letter-spacing: 0; }
+    .brand-title .eyebrow { color: var(--soft); }
+    .brand-title strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+    .nav-group { display: grid; gap: 6px; margin-top: 24px; }
+    .nav-link { display: flex; align-items: center; justify-content: space-between; min-height: 38px; border-radius: 8px; padding: 0 10px; color: #343a46; font-size: 13px; font-weight: 700; }
+    .nav-link:hover { background: #eef1f5; }
+    .nav-link span { color: var(--soft); font-size: 12px; }
+    .sidebar-status { margin-top: auto; display: grid; gap: 10px; }
+    .sidebar-note { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; }
+    .sidebar-note p { margin: 0; font-size: 12px; line-height: 1.55; }
+    .workbench-main { min-width: 0; padding: 22px 26px 40px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+    .topbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .link-pill, .tutorial-entry { min-height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; background: #fff; color: #343a46; font-size: 13px; font-weight: 720; white-space: nowrap; }
+    .tutorial-entry { border-color: var(--dark); background: var(--dark); color: #fff; }
+    .tutorial-entry::before { content: "?"; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 999px; background: rgba(255,255,255,.16); font-size: 12px; }
+    .status-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .status-pill { min-height: 28px; display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid var(--line); padding: 0 10px; background: white; color: #4b5565; font-size: 12px; font-weight: 760; white-space: nowrap; }
+    .status-pill.online { border-color: #bde4d4; color: var(--green); background: var(--green-soft); }
+    .status-pill.pending { border-color: #f3d28b; color: var(--amber); background: var(--amber-soft); }
+    .workbench-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 390px); gap: 18px; align-items: stretch; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 24px 0; }
+    .hero-copy { display: flex; min-height: 270px; flex-direction: column; justify-content: space-between; gap: 22px; }
+    .hero-copy p { max-width: 760px; margin-bottom: 0; font-size: 15px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hero-queue { display: grid; gap: 10px; }
+    .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .metric-card, .trial-item, .action-card, .realtime-card, .asset-card, .output, .admin-settings { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+    .metric-card { min-height: 88px; display: grid; align-content: center; gap: 4px; padding: 14px; }
+    .metric-card strong { font-size: 28px; line-height: 1; }
+    .metric-card span { color: var(--muted); font-size: 12px; font-weight: 720; }
+    .trial-list { display: grid; gap: 10px; }
+    .trial-item { min-height: 72px; padding: 12px; }
+    .trial-item strong { display: block; margin-bottom: 5px; font-size: 14px; }
     .trial-item span { color: var(--muted); font-size: 13px; line-height: 1.45; }
-    .actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
-    .action-card, .panel, .asset-card, .output { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
-    .action-card { display: grid; align-content: start; gap: 12px; min-height: 310px; padding: 18px; }
-    .action-card.primary { border-color: #bed3ff; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); }
-    .number { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; color: white; background: var(--blue); font-weight: 760; }
+    .section-block { padding: 24px 0; border-bottom: 1px solid var(--line); }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 14px; margin-bottom: 14px; }
+    .section-head p { max-width: 680px; margin-bottom: 0; font-size: 14px; }
+    .actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .action-card { min-height: 334px; display: grid; align-content: start; gap: 14px; padding: 16px; text-align: left; }
+    .action-card.primary { border-color: #b9c9f4; background: var(--blue-soft); }
+    .action-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .number { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; color: white; background: var(--dark); font-size: 13px; font-weight: 780; }
+    .action-card p { margin-bottom: 0; font-size: 13px; line-height: 1.55; }
     .field-stack { display: grid; gap: 10px; }
-    label span { display: block; margin-bottom: 6px; color: var(--slate); font-size: 13px; font-weight: 680; }
-    input, select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 10px 11px; color: var(--ink); background: white; }
-    textarea { min-height: 170px; resize: vertical; line-height: 1.55; }
-    .btn { border: 0; border-radius: 6px; padding: 11px 13px; color: white; background: var(--blue); cursor: pointer; font-weight: 720; white-space: nowrap; }
-    .btn.secondary { border: 1px solid var(--line); color: var(--ink); background: white; }
+    label span { display: block; margin-bottom: 6px; color: #343a46; font-size: 12px; font-weight: 720; }
+    input, select, textarea { width: 100%; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; color: var(--ink); background: white; }
+    textarea { min-height: 128px; resize: vertical; line-height: 1.55; }
+    input::placeholder, textarea::placeholder { color: #98a2b3; }
+    .btn { min-height: 40px; border: 0; border-radius: 8px; padding: 0 13px; color: white; background: var(--blue); cursor: pointer; font-weight: 760; white-space: nowrap; }
+    .btn.secondary { border: 1px solid var(--line-strong); color: #232833; background: white; }
     .btn.green { background: var(--green); }
     .btn.amber { background: var(--amber); }
     .btn.block { width: 100%; }
-    .btn:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid rgba(31, 99, 211, .18); outline-offset: 2px; }
-    .hint { margin: 0; font-size: 13px; color: var(--muted); }
-    .panel { padding: 18px; margin-bottom: 16px; }
-    .asset-tools { display: grid; grid-template-columns: 1fr 220px; gap: 10px; margin-top: 12px; }
-    .realtime-grid { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 14px; align-items: start; }
-    .realtime-card { border: 1px solid var(--line); border-radius: 8px; background: #fbfcff; padding: 14px; }
+    .btn:focus-visible, .link-pill:focus-visible, .tutorial-entry:focus-visible, .nav-link:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid rgba(36, 84, 198, .18); outline-offset: 2px; }
+    .hint { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.55; }
+    .realtime-grid { display: grid; grid-template-columns: minmax(320px, .9fr) minmax(0, 1.1fr); gap: 12px; align-items: start; }
+    .realtime-card { padding: 14px; background: var(--panel-soft); }
     .realtime-card h3 { margin-bottom: 10px; }
     .inline-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
     .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .form-grid .wide { grid-column: 1 / -1; }
-    .status-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 14px; }
-    .status-pill { display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid var(--line); padding: 5px 9px; background: white; color: var(--slate); font-size: 12px; font-weight: 720; }
-    .status-pill.online { border-color: #cfe8dc; color: var(--green); background: var(--green-soft); }
-    .status-pill.pending { border-color: #f5d28b; color: #6b4500; background: var(--amber-soft); }
-    .submission-list { display: grid; gap: 10px; max-height: 560px; overflow: auto; padding-right: 3px; }
+    .submission-list { display: grid; gap: 10px; max-height: 540px; overflow: auto; padding-right: 3px; }
     .submission-card { display: grid; gap: 9px; border: 1px solid var(--line); border-radius: 8px; background: white; padding: 12px; }
     .submission-card p { margin-bottom: 0; }
     .submission-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-    .submission-actions .btn { padding: 9px 10px; font-size: 13px; }
-    .pool-message { margin: 10px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .submission-actions .btn { min-height: 34px; padding: 0 10px; font-size: 12px; }
+    .pool-message { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .admin-settings { margin-top: 12px; padding: 0; overflow: hidden; }
+    .admin-settings summary { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 14px; cursor: pointer; font-weight: 760; }
+    .admin-settings summary::after { content: "展开"; color: var(--soft); font-size: 12px; font-weight: 760; }
+    .admin-settings[open] summary::after { content: "收起"; }
+    .admin-body { border-top: 1px solid var(--line); padding: 14px; background: #fff; }
     .category-row, .meta { display: flex; flex-wrap: wrap; gap: 7px; }
-    .tag { display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid #d6e0f5; padding: 4px 9px; background: #f4f7ff; color: #243b75; font-size: 12px; font-weight: 620; }
-    .tag.skill { border-color: #cfe8dc; color: var(--green); background: var(--green-soft); }
-    .tag.prompt { border-color: #f5d28b; color: #6b4500; background: var(--amber-soft); }
-    .tag.review { border-color: #e5d5ff; color: #5b35a5; background: #f7f2ff; }
-    .asset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+    .tag { display: inline-flex; align-items: center; min-height: 24px; border-radius: 999px; border: 1px solid #d8e2f7; padding: 0 9px; background: #f6f8fe; color: #2f4577; font-size: 12px; font-weight: 680; }
+    .tag.skill { border-color: #bde4d4; color: var(--green); background: var(--green-soft); }
+    .tag.prompt { border-color: #f3d28b; color: var(--amber); background: var(--amber-soft); }
+    .tag.review { border-color: #ddcffb; color: var(--violet); background: var(--violet-soft); }
+    .asset-tools { display: grid; grid-template-columns: 1fr 220px; gap: 10px; margin-bottom: 12px; }
+    .asset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .asset-card { display: grid; gap: 10px; padding: 14px; text-align: left; }
     .asset-card h3 { margin-bottom: 0; }
-    .asset-card p { margin-bottom: 0; }
+    .asset-card p { margin-bottom: 0; font-size: 13px; }
     .asset-card .btn { justify-self: start; }
-    .output { display: none; padding: 18px; }
+    .output { display: none; margin: 24px 0 0; padding: 16px; }
     .output.show { display: block; }
     .output-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 10px; }
-    .notice { margin-top: 10px; border: 1px solid #f5d28b; border-radius: 8px; padding: 12px; color: #5f3d00; background: var(--amber-soft); line-height: 1.6; }
-    .empty { border: 1px dashed var(--line); border-radius: 8px; padding: 20px; color: var(--muted); text-align: center; }
+    .notice { margin-top: 10px; border: 1px solid #f3d28b; border-radius: 8px; padding: 12px; color: #6b4500; background: var(--amber-soft); line-height: 1.6; font-size: 13px; }
+    .empty { border: 1px dashed var(--line-strong); border-radius: 8px; padding: 20px; color: var(--muted); text-align: center; background: #fff; }
     .tutorial-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px; background: rgba(12, 18, 31, .76); }
     .tutorial-modal.hidden { display: none; }
     .tutorial-viewer { width: min(1480px, calc(100vw - 48px)); max-height: calc(100vh - 48px); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; }
-    .tutorial-head, .tutorial-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid rgba(255, 255, 255, .16); border-radius: 8px; background: rgba(255, 255, 255, .96); padding: 12px; }
+    .tutorial-head, .tutorial-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: rgba(255,255,255,.96); padding: 12px; }
     .tutorial-head h2 { margin: 0; font-size: 19px; }
     .tutorial-counter { margin: 0; color: var(--muted); font-size: 13px; }
-    .tutorial-stage { min-height: 0; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .16); border-radius: 8px; background: #101828; padding: 10px; box-shadow: 0 22px 60px rgba(0, 0, 0, .28); }
+    .tutorial-stage { min-height: 0; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: #101828; padding: 10px; box-shadow: 0 22px 60px rgba(0,0,0,.28); }
     .tutorial-stage img { width: 100%; height: 100%; max-height: calc(100vh - 190px); aspect-ratio: 16 / 9; object-fit: contain; border-radius: 6px; background: #ffffff; }
     .tutorial-foot { justify-content: center; }
     .tutorial-tip { flex: 1; margin: 0; color: var(--muted); font-size: 13px; text-align: center; }
-    .tutorial-nav { min-width: 86px; border: 1px solid var(--line); border-radius: 6px; padding: 9px 12px; color: var(--ink); background: #ffffff; font-weight: 720; cursor: pointer; }
+    .tutorial-nav { min-width: 86px; border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; color: var(--ink); background: #ffffff; font-weight: 720; cursor: pointer; }
     .tutorial-nav.primary { color: #ffffff; border-color: var(--blue); background: var(--blue); }
     .tutorial-nav:disabled { cursor: not-allowed; opacity: .42; }
-    @media (max-width: 980px) {
-      .topbar, .topbar-left, .output-head { align-items: flex-start; flex-direction: column; }
-      .actions, .asset-grid, .asset-tools, .realtime-grid, .form-grid, .inline-row { grid-template-columns: 1fr; }
-      .trial-list { grid-template-columns: 1fr; }
+    @media (max-width: 1120px) {
+      .workspace-layout { grid-template-columns: 1fr; }
+      .sidebar-nav { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .nav-group { display: none; }
+      .sidebar-status { margin-top: 14px; }
+      .workbench-hero, .realtime-grid { grid-template-columns: 1fr; }
+      .hero-copy { min-height: 0; }
+    }
+    @media (max-width: 760px) {
+      .workbench-main { padding: 16px 12px 32px; }
+      .topbar, .section-head, .output-head { align-items: flex-start; flex-direction: column; }
+      .actions, .metric-grid, .asset-grid, .asset-tools, .form-grid, .inline-row { grid-template-columns: 1fr; }
       .action-card { min-height: 0; }
-      .shell { width: min(100% - 24px, 1180px); padding-top: 14px; }
       .tutorial-modal { padding: 12px; }
       .tutorial-viewer { width: calc(100vw - 24px); max-height: calc(100vh - 24px); }
       .tutorial-head, .tutorial-foot { align-items: stretch; flex-direction: column; }
@@ -125,156 +168,210 @@
   </style>
 </head>
 <body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="topbar-left">
+  <main class="workspace-layout" data-ui-version="workbench-v2">
+    <aside class="sidebar-nav" aria-label="工作台导航">
+      <div class="brand">
+        <div class="mark">OC</div>
+        <div class="brand-title">
+          <p class="eyebrow">运营内部测试版</p>
+          <strong>Codex 工作流资产库</strong>
+        </div>
+      </div>
+
+      <nav class="nav-group">
+        <a class="nav-link" href="#overview">今日工作台 <span>01</span></a>
+        <a class="nav-link" href="#commandCenter">指令中心 <span>02</span></a>
+        <a class="nav-link" href="#realtimePoolPanel">投稿与审核流 <span>03</span></a>
+        <a class="nav-link" href="#assetLibrary">资产库 <span>04</span></a>
+      </nav>
+
+      <div class="sidebar-status">
+        <div class="sidebar-note">
+          <p>小范围内测：先让同事真实提交、查找、审核，再决定哪些资产正式发布。</p>
+        </div>
         <button class="tutorial-entry" id="tutorialOpen" type="button">入门教学</button>
-        <div class="brand">
-          <div class="mark">OC</div>
+      </div>
+    </aside>
+
+    <div class="workbench-main">
+      <header class="topbar">
+        <div class="status-line">
+          <span class="status-pill pending" id="backendStatus">后端未连接</span>
+          <span class="status-pill" id="poolStats">待审核 0 条</span>
+          <span class="status-pill" id="approvedStats">正式资产 0 条</span>
+        </div>
+        <div class="topbar-actions">
+          <a class="link-pill" id="feishuTopLink" target="_blank" rel="noreferrer">飞书投稿表</a>
+          <a class="link-pill" href="#assetLibrary">搜索资产</a>
+        </div>
+      </header>
+
+      <section class="workbench-hero" id="overview">
+        <div class="hero-copy">
           <div>
-            <p class="eyebrow">运营内部测试版</p>
-            <h1>Codex 工作流资产库</h1>
+            <p class="eyebrow">今日工作台</p>
+            <h1>让运营经验进入资产库，再交给 Codex 复用。</h1>
+          </div>
+          <p>同事只需要完成投稿、查痛点、审核三件事。页面会复制完整指令并尝试打开 Codex，正式发布仍由管理员确认。</p>
+          <div class="hero-actions">
+            <a class="link-pill" href="#commandCenter">开始三步内测</a>
+            <a class="link-pill" href="#realtimePoolPanel">查看投稿池</a>
           </div>
         </div>
-      </div>
-      <a class="link-pill" id="feishuTopLink" target="_blank" rel="noreferrer">打开飞书投稿表</a>
-    </header>
-
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">这个网站只做三件事</p>
-        <h2>把你的经验上传进来，让 Codex 找解决办法，再让团队 Codex 交叉验证。</h2>
-        <p>同事不用研究后台。点按钮后，网站会生成完整指令、复制到剪贴板，并尝试打开 Codex 桌面版。</p>
-        <div class="trial-list" aria-label="内测任务清单">
-          <div class="trial-item"><strong>投稿 1 条</strong><span>提交一个你真实用过的方法、工具或流程。</span></div>
-          <div class="trial-item"><strong>查痛点 1 次</strong><span>说清岗位和问题，让 Codex 找可复用方案。</span></div>
-          <div class="trial-item"><strong>审核 1 条</strong><span>登记审核结论；正式发布由管理员完成。</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="actions" aria-label="三步入口">
-      <article class="action-card primary">
-        <div class="number">1</div>
-        <div>
-          <p class="eyebrow">上传沉淀</p>
-          <h3>上传我的工作流 / Skill</h3>
-          <p>让自己的 Codex 整理当前项目里好用的 SOP、skill、插件、脚本和踩坑经验，再提交到待审核投稿池。</p>
-        </div>
-        <div class="field-stack">
-          <label><span>我的岗位</span><input id="uploadRoleInput" value="短视频运营" /></label>
-          <label><span>我要沉淀的内容</span><input id="uploadTopicInput" value="我当前工作里已经跑通的工具、流程和 skill" /></label>
-        </div>
-        <button class="btn block" id="openUploadCodex" type="button">复制并打开 Codex</button>
-        <p class="hint">先进入待审核投稿池，审核通过后才会进正式资产库。</p>
-      </article>
-
-      <article class="action-card">
-        <div class="number">2</div>
-        <div>
-          <p class="eyebrow">找解决办法</p>
-          <h3>让 Codex 到资产库里找办法</h3>
-          <p>说岗位和痛点，让 Codex 读取资产库资料，找适合你的技能包、SOP、工具或自动化流程。</p>
-        </div>
-        <div class="field-stack">
-          <label><span>我的岗位</span><input id="findRoleInput" value="短视频运营" /></label>
-          <label><span>我的痛点</span><input id="findPainInput" value="Flova 生成经常卡住" /></label>
-        </div>
-        <button class="btn green block" id="openFindCodex" type="button">复制并打开 Codex</button>
-        <p class="hint">适合同事日常自己查、自己装、自己复用。</p>
-      </article>
-
-      <article class="action-card">
-        <div class="number">3</div>
-        <div>
-          <p class="eyebrow">交叉验证</p>
-          <h3>让团队 Codex 审核资产</h3>
-          <p>选择一条资产或投稿，让另一个同事的 Codex 判断能不能用、好不好用、有没有风险、怎么优化。</p>
-        </div>
-        <div class="field-stack">
-          <label><span>要审核的资产</span><select id="reviewAssetSelect"></select></label>
-          <label><span>审核人岗位</span><input id="reviewerRoleInput" value="运营同事" /></label>
-        </div>
-        <button class="btn amber block" id="openReviewCodex" type="button">复制并打开 Codex</button>
-        <p class="hint">投稿池可以登记审核结论，通过后再发布。</p>
-      </article>
-    </section>
-
-    <section class="panel" id="realtimePoolPanel">
-      <p class="eyebrow">实时投稿池</p>
-      <h2>朋友提交后先显示在这里，不直接进入正式资产库。</h2>
-      <p>这个区块连接真实后端。小范围测试时，大家提交的工具、链接、SOP、Skill 和流程会先进入“待审核投稿池”；管理员确认通过后，才会进入下面的正式资产列表。</p>
-
-      <div class="status-line">
-        <span class="status-pill pending" id="backendStatus">后端未连接</span>
-        <span class="status-pill" id="poolStats">待审核 0 条</span>
-        <span class="status-pill" id="approvedStats">正式资产 0 条</span>
-      </div>
-
-      <div class="realtime-grid">
-        <div class="realtime-card">
-          <h3>1. 管理员设置：连接后端</h3>
-          <div class="inline-row">
-            <label><span>后端地址</span><input id="apiBaseInput" placeholder="例如：https://你的后端服务地址" /></label>
-            <button class="btn secondary" id="saveApiBaseButton" type="button">保存并刷新</button>
+        <div class="hero-queue" aria-label="内测状态">
+          <div class="metric-grid">
+            <div class="metric-card"><strong>3</strong><span>内测动作</span></div>
+            <div class="metric-card"><strong>10</strong><span>种子资产</span></div>
+            <div class="metric-card"><strong>2+</strong><span>建议审核人</span></div>
           </div>
-          <p class="pool-message">普通同事不用处理这里。本地测试会自动连接；正式内测时，由管理员填云后端地址。</p>
-        </div>
-
-        <div class="realtime-card">
-          <h3>2. 提交到待审核投稿池</h3>
-          <div class="form-grid">
-            <label><span>资产标题</span><input id="submitTitleInput" placeholder="例如：Flova 卡住时的处理流程" /></label>
-            <label><span>提交人</span><input id="submitterInput" placeholder="例如：张三 / Codex-运营同事" /></label>
-            <label><span>适用岗位</span><input id="submitRoleInput" placeholder="例如：短视频运营" /></label>
-            <label><span>主分类</span><select id="submitCategoryInput"></select></label>
-            <label class="wide"><span>工具或链接，可不填</span><input id="submitUrlInput" placeholder="https://... 或工具名称" /></label>
-            <label class="wide"><span>一句话说明怎么用</span><textarea id="submitSummaryInput" placeholder="模板：适合谁 / 解决什么问题 / 怎么做 / 人工要检查什么。提交前请删掉账号、密码、密钥/token、客户信息和公司内部路径。"></textarea></label>
+          <div class="trial-list" aria-label="内测任务清单">
+            <div class="trial-item"><strong>投稿 1 条</strong><span>提交一个真实用过的方法、工具或流程。</span></div>
+            <div class="trial-item"><strong>查痛点 1 次</strong><span>说清岗位和问题，让 Codex 找方案。</span></div>
+            <div class="trial-item"><strong>审核 1 条</strong><span>登记结论，管理员再发布。</span></div>
           </div>
-          <button class="btn green block" id="submitToPoolButton" type="button">提交到待审核投稿池</button>
-          <p class="pool-message" id="submitPoolMessage">提交后，其他同事刷新页面就能看到，但它还不是正式资产。</p>
         </div>
-      </div>
+      </section>
 
-      <div class="realtime-card" style="margin-top:14px;">
-        <div class="output-head">
+      <section class="section-block" id="commandCenter">
+        <div class="section-head">
           <div>
-            <h3>3. 等待审核的投稿</h3>
-            <p class="hint">同事只登记审核结论；正式发布由管理员完成。建议至少 2 个同事用 Codex 交叉审核。</p>
+            <p class="eyebrow">指令中心</p>
+            <h2>三步入口</h2>
+          </div>
+          <p>保留同事最常用的动作：上传沉淀、查解决办法、交叉验证。</p>
+        </div>
+
+        <div class="actions" aria-label="三步入口">
+          <article class="action-card primary">
+            <div class="action-top">
+              <div class="number">1</div>
+              <span class="tag skill">投稿</span>
+            </div>
+            <div>
+              <p class="eyebrow">上传沉淀</p>
+              <h3>上传我的工作流 / Skill</h3>
+              <p>让自己的 Codex 整理 SOP、skill、插件、脚本和踩坑经验。</p>
+            </div>
+            <div class="field-stack">
+              <label><span>我的岗位</span><input id="uploadRoleInput" value="短视频运营" /></label>
+              <label><span>我要沉淀的内容</span><input id="uploadTopicInput" value="我当前工作里已经跑通的工具、流程和 skill" /></label>
+            </div>
+            <button class="btn block" id="openUploadCodex" type="button">复制并打开 Codex</button>
+            <p class="hint">投稿先进入待审核池。</p>
+          </article>
+
+          <article class="action-card">
+            <div class="action-top">
+              <div class="number">2</div>
+              <span class="tag">查找</span>
+            </div>
+            <div>
+              <p class="eyebrow">找解决办法</p>
+              <h3>让 Codex 到资产库里找办法</h3>
+              <p>输入岗位和痛点，筛选适合的 Skill、SOP、工具或自动化流程。</p>
+            </div>
+            <div class="field-stack">
+              <label><span>我的岗位</span><input id="findRoleInput" value="短视频运营" /></label>
+              <label><span>我的痛点</span><input id="findPainInput" value="Flova 生成经常卡住" /></label>
+            </div>
+            <button class="btn green block" id="openFindCodex" type="button">复制并打开 Codex</button>
+            <p class="hint">适合同事日常自助查找。</p>
+          </article>
+
+          <article class="action-card">
+            <div class="action-top">
+              <div class="number">3</div>
+              <span class="tag prompt">审核</span>
+            </div>
+            <div>
+              <p class="eyebrow">交叉验证</p>
+              <h3>让团队 Codex 审核资产</h3>
+              <p>检查是否可用、是否好用、边界是否清楚、是否包含敏感信息。</p>
+            </div>
+            <div class="field-stack">
+              <label><span>要审核的资产</span><select id="reviewAssetSelect"></select></label>
+              <label><span>审核人岗位</span><input id="reviewerRoleInput" value="运营同事" /></label>
+            </div>
+            <button class="btn amber block" id="openReviewCodex" type="button">复制并打开 Codex</button>
+            <p class="hint">结论回填后再发布。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block" id="realtimePoolPanel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">投稿与审核流</p>
+            <h2>先进入待审核池，再进入正式资产库。</h2>
           </div>
           <button class="btn secondary" id="refreshPoolButton" type="button">刷新投稿池</button>
         </div>
-        <div class="submission-list" id="submissionList"></div>
-      </div>
-    </section>
 
-    <section class="panel">
-      <p class="eyebrow">资产分类</p>
-      <h2>现在先按 6 类理解，不要把所有东西都叫 skill。</h2>
-      <div class="category-row" id="categoryRow"></div>
-    </section>
+        <div class="realtime-grid">
+          <div class="realtime-card">
+            <h3>提交到待审核投稿池</h3>
+            <div class="form-grid">
+              <label><span>资产标题</span><input id="submitTitleInput" placeholder="例如：Flova 卡住时的处理流程" /></label>
+              <label><span>提交人</span><input id="submitterInput" placeholder="例如：张三 / Codex-运营同事" /></label>
+              <label><span>适用岗位</span><input id="submitRoleInput" placeholder="例如：短视频运营" /></label>
+              <label><span>主分类</span><select id="submitCategoryInput"></select></label>
+              <label class="wide"><span>工具或链接，可不填</span><input id="submitUrlInput" placeholder="https://... 或工具名称" /></label>
+              <label class="wide"><span>一句话说明怎么用</span><textarea id="submitSummaryInput" placeholder="适合谁 / 解决什么问题 / 怎么做 / 人工要检查什么。提交前删掉账号、密码、密钥/token、客户信息和公司内部路径。"></textarea></label>
+            </div>
+            <button class="btn green block" id="submitToPoolButton" type="button">提交到待审核投稿池</button>
+            <p class="pool-message" id="submitPoolMessage">提交后会出现在右侧待审核池。</p>
+          </div>
 
-    <section class="panel">
-      <p class="eyebrow">极简资产列表</p>
-      <h2>同事可以扫一眼，也可以直接让 Codex 查。</h2>
-      <div class="asset-tools">
-        <label><span>搜索关键词</span><input id="assetSearchInput" placeholder="Flova、周报、飞书、剪映、复盘..." /></label>
-        <label><span>分类</span><select id="categoryFilter"></select></label>
-      </div>
-      <div class="asset-grid" id="assetGrid"></div>
-    </section>
-
-    <section class="output" id="outputPanel">
-      <div class="output-head">
-        <div>
-          <p class="eyebrow" id="outputKicker">已复制</p>
-          <h2 id="outputTitle">如果 Codex 没有自动打开，请手动打开 Codex 后粘贴。</h2>
+          <div class="realtime-card">
+            <div class="output-head">
+              <div>
+                <h3>等待审核的投稿</h3>
+                <p class="hint">同事登记审核结论；管理员发布正式资产。</p>
+              </div>
+            </div>
+            <div class="submission-list" id="submissionList"></div>
+          </div>
         </div>
-        <button class="btn secondary" id="copyAgainButton" type="button">再次复制</button>
-      </div>
-      <textarea id="outputText" readonly></textarea>
-      <div class="notice"><strong>codex://</strong> 是浏览器自动打开 Codex 的动作，可能会被拦截。只要这里显示了指令，同事手动打开 Codex 粘贴也能继续。</div>
-    </section>
+
+        <details class="admin-settings">
+          <summary>管理员设置：后端连接</summary>
+          <div class="admin-body">
+            <div class="inline-row">
+              <label><span>后端地址</span><input id="apiBaseInput" placeholder="例如：https://你的后端服务地址" /></label>
+              <button class="btn secondary" id="saveApiBaseButton" type="button">保存并刷新</button>
+            </div>
+            <p class="pool-message">普通同事不用处理这里。当前单服务部署会自动连接同域后端。</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="section-block" id="assetLibrary">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">资产库</p>
+            <h2>按岗位、痛点和类型快速扫一遍。</h2>
+          </div>
+          <div class="category-row" id="categoryRow"></div>
+        </div>
+        <div class="asset-tools">
+          <label><span>搜索关键词</span><input id="assetSearchInput" placeholder="Flova、周报、飞书、剪映、复盘..." /></label>
+          <label><span>分类</span><select id="categoryFilter"></select></label>
+        </div>
+        <div class="asset-grid" id="assetGrid"></div>
+      </section>
+
+      <section class="output" id="outputPanel">
+        <div class="output-head">
+          <div>
+            <p class="eyebrow" id="outputKicker">已复制</p>
+            <h2 id="outputTitle">如果 Codex 没有自动打开，请手动打开 Codex 后粘贴。</h2>
+          </div>
+          <button class="btn secondary" id="copyAgainButton" type="button">再次复制</button>
+        </div>
+        <textarea id="outputText" readonly></textarea>
+        <div class="notice"><strong>codex://</strong> 可能会被浏览器拦截；指令已经在这里，手动粘贴也能继续。</div>
+      </section>
+    </div>
   </main>
 
   <section class="tutorial-modal hidden" id="tutorialModal" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
