@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { test } from 'node:test';
+
+import { openStore } from '../store.mjs';
+
+test('submission waits in pending pool before approval, then becomes an approved asset', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'ops-codex-store-'));
+  const store = await openStore(join(dir, 'test.sqlite'));
+
+  try {
+    const submission = store.createSubmission({
+      title: 'Flova 卡住时的处理流程',
+      submitter: 'Codex-测试同事',
+      role: '短视频运营',
+      primaryCategory: '工作 SOP',
+      summary: 'Flova 生成卡住时，先保存输入材料，再让 Codex 判断是否重试或人工接管。',
+    });
+
+    assert.equal(store.listSubmissions('pending').some((item) => item.id === submission.id), true);
+    assert.equal(store.listAssets().some((item) => item.title === submission.title), false);
+
+    store.createReview(submission.id, { decision: 'approve', reviewer: '同事 A' });
+    store.createReview(submission.id, { decision: 'approve', reviewer: '同事 B' });
+    assert.equal(store.reviewSummary(submission.id).status, 'ready_to_publish');
+
+    const asset = store.approveSubmission(submission.id);
+    assert.equal(asset.title, submission.title);
+    assert.equal(store.getSubmission(submission.id).status, 'approved');
+    assert.equal(store.listSubmissions('pending').some((item) => item.id === submission.id), false);
+    assert.equal(store.listAssets().some((item) => item.id === asset.id), true);
+  } finally {
+    store.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});

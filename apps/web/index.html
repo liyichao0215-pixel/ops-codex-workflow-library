@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>运营 Codex 工作流资产库</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d9dee8;
+      --bg: #f6f7fa;
+      --panel: #ffffff;
+      --blue: #1f63d3;
+      --blue-soft: #eef4ff;
+      --green: #13795b;
+      --green-soft: #edf8f3;
+      --amber: #9a6200;
+      --amber-soft: #fff8e7;
+      --slate: #344054;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--bg); }
+    body.modal-open { overflow: hidden; }
+    button, input, select, textarea { font: inherit; }
+    a { color: inherit; }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 22px 0 36px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 8px; background: #172554; color: white; font-weight: 800; }
+    .eyebrow { margin: 0 0 5px; color: var(--blue); font-size: 12px; font-weight: 760; letter-spacing: 0; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 0; font-size: 24px; line-height: 1.2; }
+    h2 { margin-bottom: 10px; font-size: 23px; line-height: 1.35; }
+    h3 { margin-bottom: 8px; font-size: 17px; line-height: 1.35; }
+    p { color: var(--muted); line-height: 1.65; }
+    .link-pill, .tutorial-entry { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; background: white; color: var(--slate); font-size: 13px; text-decoration: none; white-space: nowrap; }
+    .tutorial-entry { min-height: 38px; color: #ffffff; background: #172033; cursor: pointer; font-weight: 720; }
+    .tutorial-entry::before { content: "?"; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, .18); font-size: 12px; }
+    .hero { margin-bottom: 16px; padding: 22px; border: 1px solid var(--line); border-radius: 8px; background: white; }
+    .hero-copy { max-width: 780px; }
+    .hero-copy p { margin-bottom: 0; }
+    .actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+    .action-card, .panel, .asset-card, .output { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+    .action-card { display: grid; align-content: start; gap: 12px; min-height: 310px; padding: 18px; }
+    .action-card.primary { border-color: #bed3ff; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); }
+    .number { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; color: white; background: var(--blue); font-weight: 760; }
+    .field-stack { display: grid; gap: 10px; }
+    label span { display: block; margin-bottom: 6px; color: var(--slate); font-size: 13px; font-weight: 680; }
+    input, select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 10px 11px; color: var(--ink); background: white; }
+    textarea { min-height: 170px; resize: vertical; line-height: 1.55; }
+    .btn { border: 0; border-radius: 6px; padding: 11px 13px; color: white; background: var(--blue); cursor: pointer; font-weight: 720; white-space: nowrap; }
+    .btn.secondary { border: 1px solid var(--line); color: var(--ink); background: white; }
+    .btn.green { background: var(--green); }
+    .btn.amber { background: var(--amber); }
+    .btn.block { width: 100%; }
+    .btn:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid rgba(31, 99, 211, .18); outline-offset: 2px; }
+    .hint { margin: 0; font-size: 13px; color: var(--muted); }
+    .panel { padding: 18px; margin-bottom: 16px; }
+    .asset-tools { display: grid; grid-template-columns: 1fr 220px; gap: 10px; margin-top: 12px; }
+    .realtime-grid { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 14px; align-items: start; }
+    .realtime-card { border: 1px solid var(--line); border-radius: 8px; background: #fbfcff; padding: 14px; }
+    .realtime-card h3 { margin-bottom: 10px; }
+    .inline-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .form-grid .wide { grid-column: 1 / -1; }
+    .status-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 14px; }
+    .status-pill { display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid var(--line); padding: 5px 9px; background: white; color: var(--slate); font-size: 12px; font-weight: 720; }
+    .status-pill.online { border-color: #cfe8dc; color: var(--green); background: var(--green-soft); }
+    .status-pill.pending { border-color: #f5d28b; color: #6b4500; background: var(--amber-soft); }
+    .submission-list { display: grid; gap: 10px; max-height: 560px; overflow: auto; padding-right: 3px; }
+    .submission-card { display: grid; gap: 9px; border: 1px solid var(--line); border-radius: 8px; background: white; padding: 12px; }
+    .submission-card p { margin-bottom: 0; }
+    .submission-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .submission-actions .btn { padding: 9px 10px; font-size: 13px; }
+    .pool-message { margin: 10px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .category-row, .meta { display: flex; flex-wrap: wrap; gap: 7px; }
+    .tag { display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid #d6e0f5; padding: 4px 9px; background: #f4f7ff; color: #243b75; font-size: 12px; font-weight: 620; }
+    .tag.skill { border-color: #cfe8dc; color: var(--green); background: var(--green-soft); }
+    .tag.prompt { border-color: #f5d28b; color: #6b4500; background: var(--amber-soft); }
+    .tag.review { border-color: #e5d5ff; color: #5b35a5; background: #f7f2ff; }
+    .asset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+    .asset-card { display: grid; gap: 10px; padding: 14px; text-align: left; }
+    .asset-card h3 { margin-bottom: 0; }
+    .asset-card p { margin-bottom: 0; }
+    .asset-card .btn { justify-self: start; }
+    .output { display: none; padding: 18px; }
+    .output.show { display: block; }
+    .output-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 10px; }
+    .notice { margin-top: 10px; border: 1px solid #f5d28b; border-radius: 8px; padding: 12px; color: #5f3d00; background: var(--amber-soft); line-height: 1.6; }
+    .empty { border: 1px dashed var(--line); border-radius: 8px; padding: 20px; color: var(--muted); text-align: center; }
+    .tutorial-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px; background: rgba(12, 18, 31, .76); }
+    .tutorial-modal.hidden { display: none; }
+    .tutorial-viewer { width: min(1480px, calc(100vw - 48px)); max-height: calc(100vh - 48px); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px; }
+    .tutorial-head, .tutorial-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid rgba(255, 255, 255, .16); border-radius: 8px; background: rgba(255, 255, 255, .96); padding: 12px; }
+    .tutorial-head h2 { margin: 0; font-size: 19px; }
+    .tutorial-counter { margin: 0; color: var(--muted); font-size: 13px; }
+    .tutorial-stage { min-height: 0; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .16); border-radius: 8px; background: #101828; padding: 10px; box-shadow: 0 22px 60px rgba(0, 0, 0, .28); }
+    .tutorial-stage img { width: 100%; height: 100%; max-height: calc(100vh - 190px); aspect-ratio: 16 / 9; object-fit: contain; border-radius: 6px; background: #ffffff; }
+    .tutorial-foot { justify-content: center; }
+    .tutorial-tip { flex: 1; margin: 0; color: var(--muted); font-size: 13px; text-align: center; }
+    .tutorial-nav { min-width: 86px; border: 1px solid var(--line); border-radius: 6px; padding: 9px 12px; color: var(--ink); background: #ffffff; font-weight: 720; cursor: pointer; }
+    .tutorial-nav.primary { color: #ffffff; border-color: var(--blue); background: var(--blue); }
+    .tutorial-nav:disabled { cursor: not-allowed; opacity: .42; }
+    @media (max-width: 980px) {
+      .topbar, .topbar-left, .output-head { align-items: flex-start; flex-direction: column; }
+      .actions, .asset-grid, .asset-tools, .realtime-grid, .form-grid, .inline-row { grid-template-columns: 1fr; }
+      .action-card { min-height: 0; }
+      .shell { width: min(100% - 24px, 1180px); padding-top: 14px; }
+      .tutorial-modal { padding: 12px; }
+      .tutorial-viewer { width: calc(100vw - 24px); max-height: calc(100vh - 24px); }
+      .tutorial-head, .tutorial-foot { align-items: stretch; flex-direction: column; }
+      .tutorial-stage { padding: 6px; }
+      .tutorial-stage img { max-height: calc(100vh - 260px); }
+      .tutorial-tip { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="tutorial-entry" id="tutorialOpen" type="button">入门教学</button>
+        <div class="brand">
+          <div class="mark">OC</div>
+          <div>
+            <p class="eyebrow">运营内部测试版</p>
+            <h1>Codex 工作流资产库</h1>
+          </div>
+        </div>
+      </div>
+      <a class="link-pill" id="feishuTopLink" target="_blank" rel="noreferrer">打开飞书投稿表</a>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">这个网站只做三件事</p>
+        <h2>把你的经验上传进来，让 Codex 找解决办法，再让团队 Codex 交叉验证。</h2>
+        <p>同事不用研究后台。点按钮后，网站会生成完整指令、复制到剪贴板，并尝试打开 Codex 桌面版。</p>
+      </div>
+    </section>
+
+    <section class="actions" aria-label="三步入口">
+      <article class="action-card primary">
+        <div class="number">1</div>
+        <div>
+          <p class="eyebrow">上传沉淀</p>
+          <h3>上传我的工作流 / Skill</h3>
+          <p>让自己的 Codex 整理当前项目里好用的 SOP、skill、插件、脚本和踩坑经验，再提交到待审核投稿池。</p>
+        </div>
+        <div class="field-stack">
+          <label><span>我的岗位</span><input id="uploadRoleInput" value="短视频运营" /></label>
+          <label><span>我要沉淀的内容</span><input id="uploadTopicInput" value="我当前工作里已经跑通的工具、流程和 skill" /></label>
+        </div>
+        <button class="btn block" id="openUploadCodex" type="button">复制并打开 Codex</button>
+        <p class="hint">先进入待审核投稿池，审核通过后才会进正式资产库。</p>
+      </article>
+
+      <article class="action-card">
+        <div class="number">2</div>
+        <div>
+          <p class="eyebrow">找解决办法</p>
+          <h3>用自己的 Codex 查仓库</h3>
+          <p>说岗位和痛点，让 Codex 读取网站和 GitHub 仓库，找适合你的 skill、SOP、工具或自动化流程。</p>
+        </div>
+        <div class="field-stack">
+          <label><span>我的岗位</span><input id="findRoleInput" value="短视频运营" /></label>
+          <label><span>我的痛点</span><input id="findPainInput" value="Flova 生成经常卡住" /></label>
+        </div>
+        <button class="btn green block" id="openFindCodex" type="button">复制并打开 Codex</button>
+        <p class="hint">适合同事日常自己查、自己装、自己复用。</p>
+      </article>
+
+      <article class="action-card">
+        <div class="number">3</div>
+        <div>
+          <p class="eyebrow">交叉验证</p>
+          <h3>让团队 Codex 审核资产</h3>
+          <p>选择一条资产或投稿，让另一个同事的 Codex 判断能不能用、好不好用、有没有风险、怎么优化。</p>
+        </div>
+        <div class="field-stack">
+          <label><span>要审核的资产</span><select id="reviewAssetSelect"></select></label>
+          <label><span>审核人岗位</span><input id="reviewerRoleInput" value="运营同事" /></label>
+        </div>
+        <button class="btn amber block" id="openReviewCodex" type="button">复制并打开 Codex</button>
+        <p class="hint">投稿池可以登记审核结论，通过后再发布。</p>
+      </article>
+    </section>
+
+    <section class="panel" id="realtimePoolPanel">
+      <p class="eyebrow">实时投稿池</p>
+      <h2>朋友提交后先显示在这里，不直接进入正式资产库。</h2>
+      <p>这个区块连接真实后端。小范围测试时，大家提交的工具、链接、SOP、Skill 和流程会先进入“待审核投稿池”；管理员确认通过后，才会进入下面的正式资产列表。</p>
+
+      <div class="status-line">
+        <span class="status-pill pending" id="backendStatus">后端未连接</span>
+        <span class="status-pill" id="poolStats">待审核 0 条</span>
+        <span class="status-pill" id="approvedStats">正式资产 0 条</span>
+      </div>
+
+      <div class="realtime-grid">
+        <div class="realtime-card">
+          <h3>1. 连接后端</h3>
+          <div class="inline-row">
+            <label><span>后端地址</span><input id="apiBaseInput" placeholder="例如：https://你的后端服务地址" /></label>
+            <button class="btn secondary" id="saveApiBaseButton" type="button">保存并刷新</button>
+          </div>
+          <p class="pool-message">本地测试默认用 <strong>http://127.0.0.1:8787</strong>。正式给同事用时，把云后端地址填在这里。</p>
+        </div>
+
+        <div class="realtime-card">
+          <h3>2. 提交到待审核投稿池</h3>
+          <div class="form-grid">
+            <label><span>资产标题</span><input id="submitTitleInput" placeholder="例如：Flova 卡住时的处理流程" /></label>
+            <label><span>提交人</span><input id="submitterInput" placeholder="例如：张三 / Codex-运营同事" /></label>
+            <label><span>适用岗位</span><input id="submitRoleInput" placeholder="例如：短视频运营" /></label>
+            <label><span>主分类</span><select id="submitCategoryInput"></select></label>
+            <label class="wide"><span>工具或链接，可不填</span><input id="submitUrlInput" placeholder="https://... 或工具名称" /></label>
+            <label class="wide"><span>一句话说明怎么用</span><textarea id="submitSummaryInput" placeholder="让 Codex 把流程整理后粘贴到这里。写清楚适合什么场景、解决什么痛点、人工边界是什么。"></textarea></label>
+          </div>
+          <button class="btn green block" id="submitToPoolButton" type="button">提交到待审核投稿池</button>
+          <p class="pool-message" id="submitPoolMessage">提交后，其他同事刷新页面就能看到，但它还不是正式资产。</p>
+        </div>
+      </div>
+
+      <div class="realtime-card" style="margin-top:14px;">
+        <div class="output-head">
+          <div>
+            <h3>3. 等待审核的投稿</h3>
+            <p class="hint">建议至少 2 个同事用 Codex 交叉审核，再由管理员点“审核通过发布”。</p>
+          </div>
+          <button class="btn secondary" id="refreshPoolButton" type="button">刷新投稿池</button>
+        </div>
+        <div class="submission-list" id="submissionList"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">资产分类</p>
+      <h2>现在先按 6 类理解，不要把所有东西都叫 skill。</h2>
+      <div class="category-row" id="categoryRow"></div>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">极简资产列表</p>
+      <h2>同事可以扫一眼，也可以直接让 Codex 查。</h2>
+      <div class="asset-tools">
+        <label><span>搜索关键词</span><input id="assetSearchInput" placeholder="Flova、周报、飞书、剪映、复盘..." /></label>
+        <label><span>分类</span><select id="categoryFilter"></select></label>
+      </div>
+      <div class="asset-grid" id="assetGrid"></div>
+    </section>
+
+    <section class="output" id="outputPanel">
+      <div class="output-head">
+        <div>
+          <p class="eyebrow" id="outputKicker">已复制</p>
+          <h2 id="outputTitle">如果 Codex 没有自动打开，请手动打开 Codex 后粘贴。</h2>
+        </div>
+        <button class="btn secondary" id="copyAgainButton" type="button">再次复制</button>
+      </div>
+      <textarea id="outputText" readonly></textarea>
+      <div class="notice">浏览器可能会拦截 <strong>codex://</strong> 打开动作。只要这里显示了指令，同事手动打开 Codex 粘贴也能继续。</div>
+    </section>
+  </main>
+
+  <section class="tutorial-modal hidden" id="tutorialModal" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+    <div class="tutorial-viewer">
+      <header class="tutorial-head">
+        <div>
+          <p class="eyebrow">入门教学</p>
+          <h2 id="tutorialTitle">这个网站怎么用</h2>
+        </div>
+        <div>
+          <p class="tutorial-counter" id="tutorialCounter">1 / 5</p>
+          <button class="tutorial-nav" id="tutorialClose" type="button">关闭</button>
+        </div>
+      </header>
+      <div class="tutorial-stage" id="tutorialStage" tabindex="0">
+        <img id="tutorialImage" alt="这个网站是给 Codex 用的运营资产库" />
+      </div>
+      <footer class="tutorial-foot">
+        <button class="tutorial-nav" id="tutorialPrev" type="button">上一张</button>
+        <p class="tutorial-tip">滚动鼠标切换图片。到第 5 张后不会继续往下跳，反方向滚动回上一张。</p>
+        <button class="tutorial-nav primary" id="tutorialNext" type="button">下一张</button>
+      </footer>
+    </div>
+  </section>
+
+  <script>
+    window.OPS_CONFIG = {
+      apiBase: ''
+    };
+  </script>
+  <script>
+    const DATA = {"assets":[{"id":"flova-queue-fast-path","title":"Flova 前端队列三门禁快路径","status":"已审核","visibility":"内部","role":"短视频运营","assetType":"SOP","tools":["Codex","Flova","Chrome","Feishu"],"tasks":["视频素材生成","页面自动化止损"],"outcomes":["手动接管文件","待人工验收下载"],"painPoints":["Flova 页面超时","重复读取项目浪费时间","页面状态文本滞后"],"tags":["Flova","矩阵号","快路径","三门禁"],"summary":"从 latest.json 和 run JSON 出发，按 Queue gate、Eligibility gate、Flova gate 推进，减少重复读代码和重度浏览器排查。","inputs":["outputs/flova-runs/latest.json","run JSON 中的 flovaPrompt","账号表达记忆"],"workflow":["Queue gate：先读取 latest.json 和被引用的 run JSON。","Eligibility gate：只检查目标账号是否满足生产条件和表达记忆约束。","Flova gate：只对 ready 项做一次轻量 prompt 粘贴、提交和最小状态确认。","首次 Chrome/Flova 交互超时后，保存手动提示文件并标记需人工介入。"],"failureModes":["Chrome/Flova 首次轻量交互超时后不继续重试截图、DOM 和坐标路径。"],"boundary":"默认停在视频素材或可预览状态，不自动下载，不替代人工验收。","feishuFields":["日期","账号","每日视频序号","生产状态","下载/验收状态","手动接管文件"],"updatedAt":"2026-06-07","owner":"李忆超","primaryCategory":"工具/插件","skillPath":"skills/flova-queue-fast-path/SKILL.md"},{"id":"daily-video-task-generator","title":"每日视频任务生成与飞书写入前预检","status":"已审核","visibility":"内部","role":"矩阵号运营","assetType":"脚本","tools":["Codex","Node.js","Feishu"],"tasks":["每日任务生成","飞书同步预检"],"outcomes":["待写入任务清单","网络阻塞提示"],"painPoints":["Feishu 网络不可达","低配额同步失败","任务状态边界混乱"],"tags":["Feishu","每日任务","预检","低配额"],"summary":"先 dry-run 生成任务，再按网络、凭证、字段结构拆分阻塞原因，避免在飞书不可达时误判脚本逻辑。","inputs":["日期","热点驱动账号配置","Feishu 多维表格字段"],"workflow":["先执行 dry-run，确认当天任务候选和账号筛选结果。","只处理生产模式为热点驱动且进入热点池的账号。","写入前先判断 open.feishu.cn 是否可达。","网络不可用时输出友好提示，保留本地验证结果，不进行 live read/write。"],"failureModes":["DNS 或网络不可达时不要继续调试凭证和字段结构。"],"boundary":"不能凭旧导出猜测当天 Feishu 记录；网络恢复后重新执行同一路径。","feishuFields":["日期","账号","每日视频序号","剧情目标","镜头结构","Flova生成指令"],"updatedAt":"2026-06-03","owner":"李忆超","primaryCategory":"自动化流程","skillPath":"skills/daily-video-task-generator/SKILL.md"},{"id":"account-expression-memory-loop","title":"账号表达记忆闭环","status":"已审核","visibility":"内部","role":"矩阵号运营","assetType":"岗位方法","tools":["Codex","Markdown","Flova"],"tasks":["账号定位复用","提示词防漂移"],"outcomes":["账号表达约束","质量复盘记录"],"painPoints":["提示词越跑越散","账号疲劳点没有沉淀","复盘不进入下一轮执行"],"tags":["账号记忆","Flova","质量闭环"],"summary":"每次执行前读取账号表达记忆，执行后把质量、定位、提示词、审核风险和边界观察写回同一位置。","inputs":["docs/账号表达记忆.md","本轮 Flova 执行结果","人工验收意见"],"workflow":["执行前读取目标账号的表达记忆。","把记忆翻译成具体的写作约束、禁用点和停止边界。","执行后写回本轮观察，尤其是疲劳点、提示词漂移和审核风险。","下一轮任务必须先读取更新后的记忆。"],"failureModes":["如果只写一次性提示词而不回写记忆，下一轮会重复踩坑。"],"boundary":"只写和未来生产质量直接相关的观察，不把无关聊天记录塞进账号记忆。","feishuFields":["账号","表达约束","禁用点","质量观察","审核风险","生产边界"],"updatedAt":"2026-06-02","owner":"李忆超","primaryCategory":"复盘卡点","skillPath":"skills/account-expression-memory-loop/SKILL.md"},{"id":"weekly-report-polish","title":"运营周报飞书汇报措辞","status":"已审核","visibility":"内部","role":"运营管理","assetType":"提示词包","tools":["Codex","Feishu"],"tasks":["周报整理","汇报措辞"],"outcomes":["可粘贴周报","周二到周一排期表"],"painPoints":["目标不够数字化","复盘不够像结论","规划没有排期"],"tags":["周报","飞书","汇报","排期"],"summary":"把目标写成数字，把复盘写成结论，把规划写成排期，输出能直接粘贴进飞书的中文版本。","inputs":["本周工作记录","下周规划","已有飞书表格结构"],"workflow":["先把目标改成可衡量数字。","再把复盘压缩成结论，不写流水账。","最后把下周事项补成周二到周一的排期表。"],"failureModes":["业务数字缺失时标出缺口，不虚构结果。"],"boundary":"不替团队承诺未经确认的目标和日期。","feishuFields":["本周目标","完成情况","复盘结论","下周规划","负责人"],"updatedAt":"2026-06-02","owner":"李忆超","primaryCategory":"提示词包","skillPath":"skills/weekly-report-polish/SKILL.md"},{"id":"japan-matrix-audience-gate","title":"日本矩阵号剧情前置判断门","status":"已审核","visibility":"内部","role":"剧情号运营","assetType":"SOP","tools":["Codex","Flova"],"tasks":["剧情方向判断","受众情绪判断"],"outcomes":["剧情方向建议","停止点确认"],"painPoints":["直接写剧情导致方向偏","没有先判断受众和情绪钩子"],"tags":["日本矩阵号","剧情","受众判断"],"summary":"新剧情生成前先判断受众、情绪钩子、节奏和表达方式，确认方向后再进入正式剧情。","inputs":["近期成功案例","账号定位","目标主题"],"workflow":["先阅读近期成功案例和用户既有执行方式。","判断受众、剧情方向、情绪钩子和节奏。","在判断阶段停止，等待用户确认是否继续写正式剧情。"],"failureModes":["跳过前置判断会导致格式和节奏不贴合已有 SOP。"],"boundary":"用户没有明确要求继续时，不直接生成完整剧情。","feishuFields":["账号","主题","受众判断","剧情方向","是否进入剧情生成"],"updatedAt":"2026-05-29","owner":"李忆超","primaryCategory":"工作 SOP","skillPath":"skills/japan-matrix-audience-gate/SKILL.md"},{"id":"capcut-edit-decision-list","title":"教程脚本转剪映执行清单","status":"已审核","visibility":"内部","role":"教程内容运营","assetType":"SOP","tools":["Codex","剪映","CapCut"],"tasks":["教程剪辑规划","字幕和重点标注"],"outcomes":["剪辑决策表","字幕检查清单"],"painPoints":["录屏素材没有剪辑路径","字幕断句影响理解"],"tags":["剪映","教程","字幕","EDL"],"summary":"把教程脚本拆成时间线、屏幕动作、字幕、强调点和导出检查项，交给剪辑阶段使用。","inputs":["教程脚本","录屏素材列表","目标平台"],"workflow":["按章节拆分脚本和屏幕动作。","标记缩放点、重点框选、字幕断句和音效时机。","输出剪映可照着执行的编辑决策清单。"],"failureModes":["没有素材文件名时先用占位名，剪辑前再替换。"],"boundary":"不替代最终人工观感检查。","feishuFields":["选题","脚本链接","素材状态","剪辑清单","字幕状态"],"updatedAt":"2026-05-28","owner":"李忆超","primaryCategory":"工具/插件","skillPath":"skills/capcut-edit-decision-list/SKILL.md"},{"id":"codex-skill-retrospective","title":"任务完成后沉淀流程最优解 Skill","status":"已审核","visibility":"内部","role":"运营全员","assetType":"Skill 草稿","tools":["Codex","Feishu"],"tasks":["任务复盘","Skill 草稿生成"],"outcomes":["SKILL.md 草稿","岗位复用说明"],"painPoints":["一次性任务没有沉淀","同事不知道怎么复用 Codex 方法"],"tags":["Codex","Skill","复盘","沉淀"],"summary":"任务完成后，让 Codex 把真实执行步骤、输入输出、卡点、人工边界整理成可审核的 skill 草稿。","inputs":["任务目标","执行记录","最终产出","失败和止损点"],"workflow":["让 Codex 回顾本次任务的输入、执行路径、验证方式和产出。","按工作流资产字段补齐岗位、工具、任务、卡点、边界。","生成 SKILL.md 草稿，但先进入人工审核。"],"failureModes":["不得把账号、路径、凭证或客户信息直接写进公开草稿。"],"boundary":"Skill 草稿必须经审核人确认后才能进入内部可安装区。","feishuFields":["资产标题","岗位","工具","卡点","复用步骤","是否可生成Skill","审核状态"],"updatedAt":"2026-06-08","owner":"李忆超","primaryCategory":"可安装 Skill","skillPath":"skills/codex-skill-retrospective/SKILL.md"}],"submissions":[{"id":"submission-seed-001","source":"teammate-codex","title":"竞品广告拆解提示词包","submitter":"Codex-运营同事-D","status":"待审核","createdAt":"2026-06-08 19:40","summary":"把竞品广告链接整理成卖点、镜头、钩子和可复用脚本。"}],"syncState":{"source":"飞书多维表格","approvedCount":7,"pendingCount":1,"lastSync":"2026-06-08 18:30"},"feishuSubmissionUrl":"https://flova-team.feishu.cn/wiki/EIiMws2CoiJD0fkBjV4cldM2nFc?from=from_copylink","siteUrl":"https://liyichao0215-pixel.github.io/ops-codex-workflow-library-test/","githubRepoUrl":"https://github.com/liyichao0215-pixel/ops-codex-workflow-library-test","updatedAt":"2026-06-08 20:00"};
+    const SITE_URL = DATA.siteUrl;
+    const GITHUB_REPO_URL = DATA.githubRepoUrl;
+    const CATEGORIES = ['可安装 Skill', '工作 SOP', '工具/插件', '自动化流程', '提示词包', '复盘卡点'];
+    const API_BASE_STORAGE_KEY = 'opsCodexWorkflowApiBase';
+    const ADMIN_TOKEN_STORAGE_KEY = 'opsCodexWorkflowAdminToken';
+    const configuredApiBase = (window.OPS_CONFIG && window.OPS_CONFIG.apiBase) || '';
+    const DEFAULT_API_BASE = configuredApiBase || (['127.0.0.1', 'localhost'].includes(location.hostname) ? 'http://127.0.0.1:8787' : '');
+    const TUTORIAL_CARDS = [
+      {
+        title: '这个网站是给 Codex 用的运营资产库',
+        label: '先理解',
+        lead: '同事不用手动翻资料，只需要让自己的 Codex 来这里找 Skill、SOP、工具、插件和踩坑经验。',
+        steps: ['不是普通资料库', '是给 Codex 查找和复用的工作流库', '先看懂用途，再让 Codex 操作'],
+        note: '打开网站后先点左上角「入门教学」。',
+        alt: '这个网站是给 Codex 用的运营资产库'
+      },
+      {
+        title: '遇到问题：说岗位 + 痛点',
+        label: '第一种用法',
+        lead: '例如：我是短视频运营，Flova 生成经常卡住。点击复制并打开 Codex，让 Codex 自动查库。',
+        steps: ['填写岗位', '填写当前痛点', '点击复制并打开 Codex'],
+        note: 'Codex 会读取网站和 GitHub 仓库，筛选适合的资产。',
+        alt: '同事输入岗位和痛点后点击复制并打开 Codex'
+      },
+      {
+        title: '找到资产：让 Codex 判断怎么复用',
+        label: '第二种用法',
+        lead: '不要盲装。先让 Codex 检查本地环境、输入材料、失败处理和人工审核边界。',
+        steps: ['看资产分类和摘要', '点击资产卡片里的复用按钮', '让 Codex 判断安装或替代方案'],
+        note: '适合才安装，不适合就让 Codex 给替代执行路径。',
+        alt: '看到合适资产后让 Codex 判断安装和复用方式'
+      },
+      {
+        title: '有好东西：让 Codex 整理后投稿',
+        label: '第三种用法',
+        lead: '工具、链接、SOP、提示词包、小脚本、本地化经验，都先让 Codex 整理成飞书投稿内容。',
+        steps: ['从上传我的工作流 / Skill 开始', '让 Codex 整理字段', '粘贴进飞书多维表格'],
+        note: '提交前不要包含账号、密码、token、客户信息或公司私有路径。',
+        alt: '有工具、SOP、Skill 或链接时让 Codex 整理后投稿'
+      },
+      {
+        title: '发布前：让团队 Codex 交叉审核',
+        label: '发布前检查',
+        lead: '审核是否可用、是否好用、适合什么岗位、有没有敏感信息、边界是否清楚。',
+        steps: ['选择一条资产', '让另一个同事的 Codex 审核', '把审核结论回填飞书'],
+        note: '通过 / 需补充 / 不建议发布，先有结论再进入资产库。',
+        alt: '团队内部用 Codex 交叉审核资产是否可用'
+      }
+    ];
+    const state = {
+      query: '',
+      category: '全部',
+      lastPrompt: '',
+      tutorialIndex: 0,
+      apiBase: localStorage.getItem(API_BASE_STORAGE_KEY) || DEFAULT_API_BASE,
+      adminToken: localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || '',
+      backendAssets: [],
+      backendSubmissions: [],
+      backendStats: null,
+      backendOnline: false
+    };
+    let tutorialWheelLocked = false;
+    const el = (id) => document.getElementById(id);
+    const join = (arr) => Array.isArray(arr) && arr.length ? arr.join('、') : '未填写';
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, function (m) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+    const valueOr = (value, fallback) => String(value || '').trim() || fallback;
+
+    function cleanApiBase() {
+      return String(state.apiBase || '').trim().replace(/\/+$/, '');
+    }
+
+    function apiUrl(path) {
+      return cleanApiBase() + path;
+    }
+
+    async function apiFetch(path, options = {}) {
+      const base = cleanApiBase();
+      if (!base) throw new Error('还没有填写后端地址');
+      const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+      if (options.admin && state.adminToken) headers['X-Admin-Token'] = state.adminToken;
+      const response = await fetch(apiUrl(path), {
+        ...options,
+        headers,
+      });
+      const data = await response.json().catch(function () { return {}; });
+      if (response.status === 401 && options.admin) {
+        const token = prompt('请输入管理员审核密码');
+        if (!token) throw new Error('需要管理员密码才能发布或退回');
+        state.adminToken = token.trim();
+        localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, state.adminToken);
+        return apiFetch(path, options);
+      }
+      if (!response.ok) throw new Error(data.error || '后端请求失败');
+      return data;
+    }
+
+    function normalizeBackendAsset(asset) {
+      return {
+        ...asset,
+        status: asset.status || 'approved',
+        primaryCategory: asset.primaryCategory || asset.assetType || '工作流资产',
+        tools: asset.tools || [],
+        tasks: asset.tasks || [],
+        tags: asset.tags || [],
+        painPoints: asset.painPoints || [],
+        inputs: asset.inputs || [],
+        outcomes: asset.outcomes || []
+      };
+    }
+
+    function allAssets() {
+      const map = new Map();
+      DATA.assets.forEach(function (asset) {
+        if (asset.status === '已审核') map.set(asset.id, asset);
+      });
+      state.backendAssets.map(normalizeBackendAsset).forEach(function (asset) {
+        map.set(asset.id, asset);
+      });
+      return Array.from(map.values());
+    }
+
+    function skillUrl(asset) {
+      return GITHUB_REPO_URL + '/tree/main/' + (asset.skillPath || ('skills/' + asset.id + '/SKILL.md'));
+    }
+
+    function escapeXml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, function (m) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+      });
+    }
+
+    function tutorialImageSrc(card, index) {
+      const steps = card.steps.map(function (step, stepIndex) {
+        return '<li><span>' + (stepIndex + 1) + '</span>' + escapeXml(step) + '</li>';
+      }).join('');
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">' +
+        '<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1f6ff"/><stop offset="1" stop-color="#edf7f2"/></linearGradient></defs>' +
+        '<rect width="1920" height="1080" fill="url(#bg)"/>' +
+        '<foreignObject width="1920" height="1080">' +
+          '<div xmlns="http://www.w3.org/1999/xhtml" style="width:1920px;height:1080px;padding:96px 120px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif;color:#172033;box-sizing:border-box;">' +
+            '<div style="display:flex;align-items:center;gap:20px;margin-bottom:76px;"><div style="width:58px;height:58px;border-radius:10px;background:#172554;color:white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;">OC</div><div style="font-size:28px;font-weight:800;color:#667085;">说明卡 ' + String(index + 1).padStart(2, '0') + ' / 05</div></div>' +
+            '<div style="display:grid;grid-template-columns:1.05fr .95fr;gap:72px;align-items:center;">' +
+              '<div>' +
+                '<div style="display:inline-flex;border:2px solid #d7ccff;border-radius:999px;background:#f7f2ff;color:#6c3fd4;padding:12px 24px;font-size:28px;font-weight:900;margin-bottom:38px;">' + escapeXml(card.label) + '</div>' +
+                '<h1 style="margin:0 0 34px;font-size:76px;line-height:1.08;letter-spacing:0;font-weight:950;">' + escapeXml(card.title) + '</h1>' +
+                '<p style="margin:0;color:#475467;font-size:36px;line-height:1.45;font-weight:760;">' + escapeXml(card.lead) + '</p>' +
+                '<ul style="list-style:none;margin:56px 0 0;padding:0;display:grid;gap:20px;font-size:30px;font-weight:850;color:#25334d;">' + steps + '</ul>' +
+              '</div>' +
+              '<div style="display:grid;gap:28px;">' +
+                '<div style="border:2px solid #d9dee8;border-radius:18px;background:white;padding:38px;box-shadow:0 24px 70px rgba(25,38,50,.13);">' +
+                  '<div style="height:58px;border-bottom:2px solid #e5e9f2;display:flex;align-items:flex-start;gap:14px;"><span style="width:14px;height:14px;border-radius:50%;background:#d92d20;"></span><span style="width:14px;height:14px;border-radius:50%;background:#f79009;"></span><span style="width:14px;height:14px;border-radius:50%;background:#12b76a;"></span></div>' +
+                  '<div style="padding-top:34px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">' +
+                    '<div style="height:210px;border-radius:14px;background:#eef4ff;border:2px solid #bed3ff;padding:22px;"><b style="font-size:22px;color:#1f63d3;">上传沉淀</b><p style="font-size:20px;color:#667085;line-height:1.5;">让 Codex 整理工作流</p></div>' +
+                    '<div style="height:210px;border-radius:14px;background:#edf8f3;border:2px solid #cfe8dc;padding:22px;"><b style="font-size:22px;color:#13795b;">找解决办法</b><p style="font-size:20px;color:#667085;line-height:1.5;">岗位 + 痛点查库</p></div>' +
+                    '<div style="height:210px;border-radius:14px;background:#fff8e7;border:2px solid #f5d28b;padding:22px;"><b style="font-size:22px;color:#9a6200;">交叉验证</b><p style="font-size:20px;color:#667085;line-height:1.5;">团队 Codex 审核</p></div>' +
+                  '</div>' +
+                  '<div style="margin-top:28px;height:150px;border-radius:14px;background:#f8fafc;border:2px solid #e5e9f2;padding:24px;color:#475467;font-size:24px;font-weight:760;line-height:1.45;">' + escapeXml(card.note) + '</div>' +
+                '</div>' +
+                '<div style="display:flex;align-items:center;justify-content:center;border-radius:16px;background:#172033;color:white;padding:24px 32px;font-size:28px;font-weight:900;">复制并打开 Codex</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</foreignObject>' +
+      '</svg>';
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    function renderTutorialCard() {
+      const card = TUTORIAL_CARDS[state.tutorialIndex];
+      el('tutorialTitle').textContent = card.title;
+      el('tutorialImage').src = tutorialImageSrc(card, state.tutorialIndex);
+      el('tutorialImage').alt = card.alt;
+      el('tutorialCounter').textContent = (state.tutorialIndex + 1) + ' / ' + TUTORIAL_CARDS.length;
+      el('tutorialPrev').disabled = state.tutorialIndex === 0;
+      el('tutorialNext').disabled = state.tutorialIndex === TUTORIAL_CARDS.length - 1;
+    }
+
+    function moveTutorial(direction) {
+      const nextIndex = Math.max(0, Math.min(TUTORIAL_CARDS.length - 1, state.tutorialIndex + direction));
+      if (nextIndex === state.tutorialIndex) return;
+      state.tutorialIndex = nextIndex;
+      renderTutorialCard();
+    }
+
+    function openTutorial() {
+      state.tutorialIndex = 0;
+      renderTutorialCard();
+      el('tutorialModal').classList.remove('hidden');
+      document.body.classList.add('modal-open');
+      el('tutorialStage').focus();
+    }
+
+    function closeTutorial() {
+      el('tutorialModal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      el('tutorialOpen').focus();
+    }
+
+    function handleTutorialWheel(event) {
+      event.preventDefault();
+      if (tutorialWheelLocked) return;
+      const delta = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+      if (Math.abs(delta) < 18) return;
+      tutorialWheelLocked = true;
+      moveTutorial(delta > 0 ? 1 : -1);
+      setTimeout(function () {
+        tutorialWheelLocked = false;
+      }, 420);
+    }
+
+    function handleTutorialKeydown(event) {
+      if (el('tutorialModal').classList.contains('hidden')) return;
+      if (event.key === 'Escape') closeTutorial();
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') moveTutorial(1);
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') moveTutorial(-1);
+    }
+
+    function openCodex(prompt) {
+      const url = 'codex://new?prompt=' + encodeURIComponent(prompt);
+      window.location.href = url;
+    }
+
+    async function copyAndOpen(title, prompt) {
+      state.lastPrompt = prompt;
+      el('outputTitle').textContent = title;
+      el('outputText').value = prompt;
+      el('outputPanel').classList.add('show');
+      try {
+        await navigator.clipboard.writeText(prompt);
+        el('outputKicker').textContent = '已复制';
+      } catch {
+        el('outputKicker').textContent = '复制可能被浏览器拦截';
+      }
+      openCodex(prompt);
+      el('outputPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function buildUploadPrompt() {
+      const role = valueOr(el('uploadRoleInput').value, '请根据我的描述判断岗位');
+      const topic = valueOr(el('uploadTopicInput').value, '我当前工作里已经跑通的工具、流程和 skill');
+      return [
+        '请帮我把自己工作中已经跑通的东西整理成运营部工作流资产投稿。',
+        '',
+        '我的岗位：' + role,
+        '我要沉淀的内容：' + topic,
+        '',
+        '请先在我当前项目或我提供的材料里查找：好用的 skill、工作 SOP、提示词包、小脚本、插件、工具链接、自动化流程、失败卡点和人工边界。',
+        '然后整理成可以粘贴到网站“实时投稿池”的一条投稿。',
+        '',
+        '投稿入口：打开资产库网站，在“实时投稿池”里提交到待审核投稿池。',
+        '飞书投稿表（备用）：' + DATA.feishuSubmissionUrl,
+        '资产库网站：' + SITE_URL,
+        'GitHub 仓库：' + GITHUB_REPO_URL,
+        '',
+        '请按这些字段输出：资产标题、主分类、适用岗位、资产类型、工具或链接、解决任务、适合场景、输入材料、使用步骤、产出结果、卡点、失败处理、人工边界、是否可生成 Skill、是否包含敏感信息。',
+        '',
+        '提交前必须检查：不要包含账号、密码、token、客户信息、公司私有路径、未授权飞书链接。'
+      ].join('\n');
+    }
+
+    function buildFindPrompt() {
+      const role = valueOr(el('findRoleInput').value, '请根据我的描述判断岗位');
+      const pain = valueOr(el('findPainInput').value, '请根据我的描述判断工作痛点');
+      return [
+        '请读取这个运营部 Codex 工作流资产库：',
+        SITE_URL,
+        '',
+        '也请参考这个 GitHub 仓库：',
+        GITHUB_REPO_URL,
+        '',
+        '我的岗位是：' + role,
+        '我现在的痛点是：' + pain,
+        '',
+        '请你去这个资产库里找适合我的 skill、SOP、工具、插件、提示词包或自动化流程。',
+        '找到后告诉我：',
+        '1. 哪个最适合我',
+        '2. 为什么适合',
+        '3. 我本地 Codex 怎么复用或安装',
+        '4. 有没有人工审核边界',
+        '',
+        '如果没有完全匹配的资产，请帮我整理一条新的资产投稿草稿。'
+      ].join('\n');
+    }
+
+    function buildReviewPrompt() {
+      const asset = allAssets().find((item) => item.id === el('reviewAssetSelect').value) || allAssets()[0];
+      const reviewerRole = valueOr(el('reviewerRoleInput').value, '运营同事');
+      return [
+        '请作为团队内部交叉审核 Codex，审核下面这条运营工作流资产。',
+        '',
+        '审核人岗位：' + reviewerRole,
+        '资产标题：' + asset.title,
+        '资产分类：' + asset.primaryCategory,
+        '适用岗位：' + asset.role,
+        '资产类型：' + asset.assetType,
+        '资产摘要：' + asset.summary,
+        'GitHub 仓库：' + GITHUB_REPO_URL,
+        '资产库网站：' + SITE_URL,
+        '',
+        '请审核并输出：',
+        '1. 这条资产是否可以用',
+        '2. 是否真的好用，适合什么岗位',
+        '3. 输入材料、步骤、人工边界是否清楚',
+        '4. 是否包含敏感信息或不该公开的内容',
+        '5. 有哪些可以优化的点',
+        '6. 审核结论：通过 / 需补充 / 不建议发布',
+        '',
+        '请用运营同事能看懂的话写，不要只给技术判断。'
+      ].join('\n');
+    }
+
+    function buildSubmissionReviewPrompt(submission) {
+      return [
+        '请作为团队内部交叉审核 Codex，审核下面这条“待审核投稿池”里的新投稿。',
+        '',
+        '投稿标题：' + submission.title,
+        '提交人：' + submission.submitter,
+        '适用岗位：' + submission.role,
+        '主分类：' + submission.primaryCategory,
+        '工具或链接：' + (submission.url || '未填写'),
+        '投稿说明：' + submission.summary,
+        '资产库网站：' + SITE_URL,
+        'GitHub 仓库：' + GITHUB_REPO_URL,
+        '',
+        '请审核并输出：',
+        '1. 这条投稿是否可以用',
+        '2. 是否真的好用，适合什么岗位',
+        '3. 输入材料、步骤、失败处理和人工边界是否清楚',
+        '4. 是否包含账号、密码、token、客户信息、公司私有路径或未授权链接',
+        '5. 有哪些可以优化的点',
+        '6. 审核结论：通过 / 需补充 / 不建议发布',
+        '',
+        '请用运营同事能看懂的话写，方便管理员决定是否发布到正式资产库。'
+      ].join('\n');
+    }
+
+    function buildInstallPrompt(asset) {
+      return [
+        '请帮我复用这条运营部 Codex 工作流资产。',
+        '',
+        '资产标题：' + asset.title,
+        '主分类：' + asset.primaryCategory,
+        '适用岗位：' + asset.role,
+        '资产类型：' + asset.assetType,
+        '工具：' + join(asset.tools),
+        '解决任务：' + join(asset.tasks),
+        '卡点：' + join(asset.painPoints),
+        '输入材料：' + join(asset.inputs || asset.codexUse?.requiredInputs),
+        '人工边界：' + (asset.boundary || asset.codexUse?.humanBoundary || '请先判断'),
+        '',
+        '资产库网站：' + SITE_URL,
+        'GitHub 仓库：' + GITHUB_REPO_URL,
+        'Skill 路径（如果仓库已同步该文件）：' + skillUrl(asset),
+        '资产说明：' + asset.summary,
+        '',
+        '请先判断我本地环境是否适合安装或复用。适合的话，帮我生成安装步骤或本地 skill 草稿；不适合的话，给我替代执行方案。'
+      ].join('\n');
+    }
+
+    function tagClass(category) {
+      if (category === '可安装 Skill') return 'skill';
+      if (category === '提示词包') return 'prompt';
+      if (category === '复盘卡点') return 'review';
+      return '';
+    }
+
+    function assetMatches(asset) {
+      const query = state.query.trim().toLowerCase();
+      const text = [asset.title, asset.role, asset.assetType, asset.primaryCategory, asset.summary, join(asset.tools), join(asset.tasks), join(asset.tags), join(asset.painPoints)].join(' ').toLowerCase();
+      return (!query || text.includes(query)) && (state.category === '全部' || asset.primaryCategory === state.category);
+    }
+
+    function renderCategories() {
+      el('categoryRow').innerHTML = CATEGORIES.map(function (category) {
+        return '<span class="tag ' + tagClass(category) + '">' + escapeHtml(category) + '</span>';
+      }).join('');
+      el('categoryFilter').innerHTML = ['全部'].concat(CATEGORIES).map(function (category) {
+        return '<option value="' + escapeHtml(category) + '">' + escapeHtml(category) + '</option>';
+      }).join('');
+    }
+
+    function renderReviewSelect() {
+      el('reviewAssetSelect').innerHTML = allAssets().map(function (asset) {
+        return '<option value="' + escapeHtml(asset.id) + '">' + escapeHtml(asset.title) + '</option>';
+      }).join('');
+    }
+
+    function renderAssets() {
+      const list = allAssets().filter(assetMatches);
+      el('assetGrid').innerHTML = list.length ? list.map(function (asset) {
+        return '<article class="asset-card">' +
+          '<div class="meta"><span class="tag ' + tagClass(asset.primaryCategory) + '">' + escapeHtml(asset.primaryCategory) + '</span><span class="tag">' + escapeHtml(asset.role) + '</span></div>' +
+          '<h3>' + escapeHtml(asset.title) + '</h3>' +
+          '<p>' + escapeHtml(asset.summary) + '</p>' +
+          '<button class="btn secondary asset-open-codex" data-id="' + escapeHtml(asset.id) + '" type="button">复制并打开 Codex 安装/复用</button>' +
+        '</article>';
+      }).join('') : '<div class="empty">没有找到匹配资产。可以先用上传入口，让 Codex 帮你沉淀一条新资产。</div>';
+      document.querySelectorAll('.asset-open-codex').forEach(function (button) {
+        button.addEventListener('click', function () {
+          const asset = allAssets().find(function (item) { return item.id === button.dataset.id; });
+          copyAndOpen('已复制。如果 Codex 没有自动打开，请手动打开 Codex 后粘贴。', buildInstallPrompt(asset));
+        });
+      });
+    }
+
+    function setPoolMessage(message, isError = false) {
+      el('submitPoolMessage').textContent = message;
+      el('submitPoolMessage').style.color = isError ? '#b42318' : '';
+    }
+
+    function renderBackendStatus() {
+      const status = el('backendStatus');
+      if (state.backendOnline) {
+        status.textContent = '后端已连接';
+        status.className = 'status-pill online';
+      } else {
+        status.textContent = cleanApiBase() ? '后端未连接' : '未填写后端地址';
+        status.className = 'status-pill pending';
+      }
+      const stats = state.backendStats || {};
+      el('poolStats').textContent = '待审核 ' + (stats.pending ?? state.backendSubmissions.length ?? 0) + ' 条';
+      el('approvedStats').textContent = '正式资产 ' + (stats.approvedAssets ?? allAssets().length) + ' 条';
+    }
+
+    function renderSubmissions() {
+      if (!cleanApiBase()) {
+        el('submissionList').innerHTML = '<div class="empty">还没有填写后端地址。部署真实后端后，把地址填上即可开始收投稿。</div>';
+        renderBackendStatus();
+        return;
+      }
+      if (!state.backendOnline && state.backendSubmissions.length === 0) {
+        el('submissionList').innerHTML = '<div class="empty">暂时连不上后端。请确认后端服务已经启动，或云后端地址填写正确。</div>';
+        renderBackendStatus();
+        return;
+      }
+      const submissions = state.backendSubmissions;
+      el('submissionList').innerHTML = submissions.length ? submissions.map(function (submission) {
+        const sensitive = (submission.sensitiveFlags || []).length
+          ? '<span class="tag review">可能含敏感信息</span>'
+          : '<span class="tag skill">待审核</span>';
+        return '<article class="submission-card">' +
+          '<div class="meta">' + sensitive + '<span class="tag">' + escapeHtml(submission.primaryCategory || '待分类') + '</span><span class="tag">' + escapeHtml(submission.role || '待判断') + '</span></div>' +
+          '<h3>' + escapeHtml(submission.title) + '</h3>' +
+          '<p>' + escapeHtml(submission.summary) + '</p>' +
+          (submission.url ? '<p class="hint">工具或链接：' + escapeHtml(submission.url) + '</p>' : '') +
+          '<p class="hint">提交人：' + escapeHtml(submission.submitter || '运营同事') + ' · ' + escapeHtml((submission.createdAt || '').slice(0, 19).replace('T', ' ')) + '</p>' +
+          '<div class="submission-actions">' +
+            '<button class="btn secondary pool-review-prompt" data-id="' + escapeHtml(submission.id) + '" type="button">复制审核指令</button>' +
+            '<button class="btn green pool-review-approve" data-id="' + escapeHtml(submission.id) + '" type="button">登记 Codex 审核通过</button>' +
+            '<button class="btn amber pool-review-changes" data-id="' + escapeHtml(submission.id) + '" type="button">登记需补充</button>' +
+            '<button class="btn pool-publish" data-id="' + escapeHtml(submission.id) + '" type="button">审核通过发布</button>' +
+          '</div>' +
+        '</article>';
+      }).join('') : '<div class="empty">现在没有待审核投稿。朋友提交后会先出现在这里。</div>';
+
+      document.querySelectorAll('.pool-review-prompt').forEach(function (button) {
+        button.addEventListener('click', function () {
+          const submission = state.backendSubmissions.find(function (item) { return item.id === button.dataset.id; });
+          if (submission) copyAndOpen('已复制投稿审核指令。请让另一个同事的 Codex 审核后回填结论。', buildSubmissionReviewPrompt(submission));
+        });
+      });
+      document.querySelectorAll('.pool-review-approve').forEach(function (button) {
+        button.addEventListener('click', function () { createPoolReview(button.dataset.id, 'approve'); });
+      });
+      document.querySelectorAll('.pool-review-changes').forEach(function (button) {
+        button.addEventListener('click', function () { createPoolReview(button.dataset.id, 'request_changes'); });
+      });
+      document.querySelectorAll('.pool-publish').forEach(function (button) {
+        button.addEventListener('click', function () { publishSubmission(button.dataset.id); });
+      });
+      renderBackendStatus();
+    }
+
+    async function refreshRealtimePool() {
+      if (!cleanApiBase()) {
+        state.backendOnline = false;
+        state.backendAssets = [];
+        state.backendSubmissions = [];
+        state.backendStats = null;
+        renderSubmissions();
+        renderAssets();
+        renderReviewSelect();
+        return;
+      }
+      try {
+        const data = await apiFetch('/api/bootstrap');
+        state.backendOnline = true;
+        state.backendAssets = data.assets || [];
+        state.backendSubmissions = data.submissions || [];
+        state.backendStats = data.stats || null;
+        renderSubmissions();
+        renderAssets();
+        renderReviewSelect();
+      } catch (error) {
+        state.backendOnline = false;
+        state.backendStats = null;
+        renderSubmissions();
+        setPoolMessage(error.message || '后端连接失败', true);
+      }
+    }
+
+    function saveApiBase() {
+      state.apiBase = el('apiBaseInput').value.trim();
+      if (state.apiBase) localStorage.setItem(API_BASE_STORAGE_KEY, state.apiBase);
+      else localStorage.removeItem(API_BASE_STORAGE_KEY);
+      refreshRealtimePool();
+    }
+
+    async function submitToPool() {
+      const payload = {
+        title: el('submitTitleInput').value,
+        submitter: el('submitterInput').value,
+        role: el('submitRoleInput').value,
+        primaryCategory: el('submitCategoryInput').value,
+        url: el('submitUrlInput').value,
+        summary: el('submitSummaryInput').value,
+        source: 'website-realtime-pool'
+      };
+      if (!payload.title.trim() || !payload.summary.trim()) {
+        setPoolMessage('请至少填写资产标题和一句话说明。', true);
+        return;
+      }
+      try {
+        setPoolMessage('正在提交到待审核投稿池...');
+        await apiFetch('/api/submissions', { method: 'POST', body: JSON.stringify(payload) });
+        ['submitTitleInput', 'submitUrlInput', 'submitSummaryInput'].forEach(function (id) { el(id).value = ''; });
+        setPoolMessage('已提交。它现在只在待审核投稿池里，审核通过后才会进入正式资产库。');
+        await refreshRealtimePool();
+      } catch (error) {
+        setPoolMessage(error.message || '提交失败，请检查后端连接。', true);
+      }
+    }
+
+    async function createPoolReview(submissionId, decision) {
+      try {
+        await apiFetch('/api/submissions/' + encodeURIComponent(submissionId) + '/reviews', {
+          method: 'POST',
+          body: JSON.stringify({
+            reviewer: '网站登记的团队 Codex 审核',
+            reviewerRole: valueOr(el('reviewerRoleInput').value, '运营同事'),
+            decision,
+            findings: decision === 'approve' ? ['已登记一条 Codex 审核通过结论'] : ['已登记需补充，请管理员发布前确认']
+          })
+        });
+        setPoolMessage(decision === 'approve' ? '已登记一条 Codex 审核通过结论。' : '已登记“需补充”结论。');
+        await refreshRealtimePool();
+      } catch (error) {
+        setPoolMessage(error.message || '登记审核失败。', true);
+      }
+    }
+
+    async function publishSubmission(submissionId) {
+      const submission = state.backendSubmissions.find(function (item) { return item.id === submissionId; });
+      if (!submission) return;
+      if (!confirm('确认把“' + submission.title + '”发布到正式资产库吗？')) return;
+      try {
+        await apiFetch('/api/submissions/' + encodeURIComponent(submissionId) + '/approve', {
+          method: 'POST',
+          admin: true,
+          body: JSON.stringify({
+            title: submission.title,
+            role: submission.role,
+            primaryCategory: submission.primaryCategory,
+            summary: submission.summary,
+            owner: submission.submitter
+          })
+        });
+        setPoolMessage('已发布到正式资产库。下面的资产列表会同步出现这条内容。');
+        await refreshRealtimePool();
+      } catch (error) {
+        setPoolMessage(error.message || '发布失败。', true);
+      }
+    }
+
+    function init() {
+      el('feishuTopLink').href = DATA.feishuSubmissionUrl;
+      el('apiBaseInput').value = state.apiBase;
+      el('submitCategoryInput').innerHTML = CATEGORIES.map(function (category) {
+        return '<option value="' + escapeHtml(category) + '">' + escapeHtml(category) + '</option>';
+      }).join('');
+      el('tutorialOpen').addEventListener('click', openTutorial);
+      el('tutorialClose').addEventListener('click', closeTutorial);
+      el('tutorialPrev').addEventListener('click', function () { moveTutorial(-1); });
+      el('tutorialNext').addEventListener('click', function () { moveTutorial(1); });
+      el('tutorialModal').addEventListener('wheel', handleTutorialWheel, { passive: false });
+      el('tutorialModal').addEventListener('click', function (event) {
+        if (event.target === el('tutorialModal')) closeTutorial();
+      });
+      document.addEventListener('keydown', handleTutorialKeydown);
+      renderCategories();
+      renderReviewSelect();
+      renderAssets();
+      el('openUploadCodex').addEventListener('click', function () {
+        copyAndOpen('已复制。如果 Codex 没有自动打开，请手动打开 Codex 后粘贴。', buildUploadPrompt());
+      });
+      el('openFindCodex').addEventListener('click', function () {
+        copyAndOpen('已复制。如果 Codex 没有自动打开，请手动打开 Codex 后粘贴。', buildFindPrompt());
+      });
+      el('openReviewCodex').addEventListener('click', function () {
+        copyAndOpen('已复制。如果 Codex 没有自动打开，请手动打开 Codex 后粘贴。', buildReviewPrompt());
+      });
+      el('saveApiBaseButton').addEventListener('click', saveApiBase);
+      el('refreshPoolButton').addEventListener('click', refreshRealtimePool);
+      el('submitToPoolButton').addEventListener('click', submitToPool);
+      el('copyAgainButton').addEventListener('click', async function () {
+        if (!state.lastPrompt) return;
+        await navigator.clipboard.writeText(state.lastPrompt).catch(function () {});
+        el('outputKicker').textContent = '已再次复制';
+      });
+      el('assetSearchInput').addEventListener('input', function (event) {
+        state.query = event.target.value;
+        renderAssets();
+      });
+      el('categoryFilter').addEventListener('change', function (event) {
+        state.category = event.target.value;
+        renderAssets();
+      });
+      renderSubmissions();
+      refreshRealtimePool();
+      setInterval(refreshRealtimePool, 30_000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+{
+  "kind": "ops-codex-workflow-catalog",
+  "version": 1,
+  "audience": "company-ops-internal",
+  "instructions": "Use this catalog to help company operations teammates find, evaluate, and install internal Codex workflow assets. Only use approved internal assets.",
+  "assets": [
+    {
+      "id": "flova-queue-fast-path",
+      "title": "Flova 前端队列三门禁快路径",
+      "role": "短视频运营",
+      "assetType": "SOP",
+      "tools": [
+        "Codex",
+        "Flova",
+        "Chrome",
+        "Feishu"
+      ],
+      "tasks": [
+        "视频素材生成",
+        "页面自动化止损"
+      ],
+      "outcomes": [
+        "手动接管文件",
+        "待人工验收下载"
+      ],
+      "painPoints": [
+        "Flova 页面超时",
+        "重复读取项目浪费时间",
+        "页面状态文本滞后"
+      ],
+      "tags": [
+        "Flova",
+        "矩阵号",
+        "快路径",
+        "三门禁"
+      ],
+      "summary": "从 latest.json 和 run JSON 出发，按 Queue gate、Eligibility gate、Flova gate 推进，减少重复读代码和重度浏览器排查。",
+      "detailUrl": "./#asset=flova-queue-fast-path",
+      "skill": {
+        "available": true,
+        "installUrl": "./skills/flova-queue-fast-path/SKILL.md",
+        "installTarget": "$CODEX_HOME/skills"
+      },
+      "codexUse": {
+        "queryHints": [
+          "视频素材生成",
+          "页面自动化止损",
+          "Flova 页面超时",
+          "重复读取项目浪费时间",
+          "页面状态文本滞后",
+          "Flova",
+          "矩阵号",
+          "快路径",
+          "三门禁"
+        ],
+        "requiredInputs": [
+          "outputs/flova-runs/latest.json",
+          "run JSON 中的 flovaPrompt",
+          "账号表达记忆"
+        ],
+        "humanBoundary": "默认停在视频素材或可预览状态，不自动下载，不替代人工验收。"
+      }
+    },
+    {
+      "id": "daily-video-task-generator",
+      "title": "每日视频任务生成与飞书写入前预检",
+      "role": "矩阵号运营",
+      "assetType": "脚本",
+      "tools": [
+        "Codex",
+        "Node.js",
+        "Feishu"
+      ],
+      "tasks": [
+        "每日任务生成",
+        "飞书同步预检"
+      ],
+      "outcomes": [
+        "待写入任务清单",
+        "网络阻塞提示"
+      ],
+      "painPoints": [
+        "Feishu 网络不可达",
+        "低配额同步失败",
+        "任务状态边界混乱"
+      ],
+      "tags": [
+        "Feishu",
+        "每日任务",
+        "预检",
+        "低配额"
+      ],
+      "summary": "先 dry-run 生成任务，再按网络、凭证、字段结构拆分阻塞原因，避免在飞书不可达时误判脚本逻辑。",
+      "detailUrl": "./#asset=daily-video-task-generator",
+      "skill": {
+        "available": true,
+        "installUrl": "./skills/daily-video-task-generator/SKILL.md",
+        "installTarget": "$CODEX_HOME/skills"
+      },
+      "codexUse": {
+        "queryHints": [
+          "每日任务生成",
+          "飞书同步预检",
+          "Feishu 网络不可达",
+          "低配额同步失败",
+          "任务状态边界混乱",
+          "Feishu",
+          "每日任务",
+          "预检",
+          "低配额"
+        ],
+        "requiredInputs": [
+          "日期",
+          "热点驱动账号配置",
+          "Feishu 多维表格字段"
+        ],
+        "humanBoundary": "不能凭旧导出猜测当天 Feishu 记录；网络恢复后重新执行同一路径。"
+      }
+    },
+    {
+      "id": "account-expression-memory-loop",
+      "title": "账号表达记忆闭环",
+      "role": "矩阵号运营",
+      "assetType": "岗位方法",
+      "tools": [
+        "Codex",
+        "Markdown",
+        "Flova"
+      ],
+      "tasks": [
+        "账号定位复用",
+        "提示词防漂移"
+      ],
+      "outcomes": [
+        "账号表达约束",
+        "质量复盘记录"
+      ],
+      "painPoints": [
+        "提示词越跑越散",
+        "账号疲劳点没有沉淀",
+        "复盘不进入下一轮执行"
+      ],
+      "tags": [
+        "账号记忆",
+        "Flova",
+        "质量闭环"
+      ],
+      "summary": "每次执行前读取账号表达记忆，执行后把质量、定位、提示词、审核风险和边界观察写回同一位置。",
+      "detailUrl": "./#asset=account-expression-memory-loop",
+      "skill": {
+        "available": true,
+        "installUrl": "./skills/account-expression-memory-loop/SKILL.md",
+        "installTarget": "$CODEX_HOME/skills"
+      },
+      "codexUse": {
+        "queryHints": [
+          "账号定位复用",
+          "提示词防漂移",
+          "提示词越跑越散",
+          "账号疲劳点没有沉淀",
+          "复盘不进入下一轮执行",
+          "账号记忆",
+          "Flova",
+          "质量闭环"
+        ],
+        "requiredInputs": [
+          "docs/账号表达记忆.md",
+          "本轮 Flova 执行结果",
+          "人工验收意见"
+        ],
+        "humanBoundary": "只写和未来生产质量直接相关的观察，不把无关聊天记录塞进账号记忆。"
+      }
+    },
+    {
+      "id": "weekly-report-polish",
+      "title": "运营周报飞书汇报措辞",
+      "role": "运营管理",
+      "assetType": "提示词包",
+      "tools": [
+        "Codex",
+        "Feishu"
+      ],
+      "tasks": [
+        "周报整理",
+        "汇报措辞"
+      ],
+      "outcomes": [
+        "可粘贴周报",
+        "周二到周一排期表"
+      ],
+      "painPoints": [
+        "目标不够数字化",
+        "复盘不够像结论",
+        "规划没有排期"
+      ],
+      "tags": [
+        "周报",
+        "飞书",
+        "汇报",
+        "排期"
+      ],
+      "summary": "把目标写成数字，把复盘写成结论，把规划写成排期，输出能直接粘贴进飞书的中文版本。",
+      "detailUrl": "./#asset=weekly-report-polish",
+      "skill": {
+        "available": true,
+        "installUrl": "./skills/weekly-report-polish/SKILL.md",
+        "installTarget": "$CODEX_HOME/skills"
+      },
+      "codexUse": {
+        "queryHints": [
+          "周报整理",
+          "汇报措辞",
+          "目标不够数字化",
+          "复盘不够像结论",
+          "规划没有排期",
+          "周报",
+          "飞书",
+          "汇报",
+          "排期"
+        ],
+        "requiredInputs": [
+          "本周工作记录",
+          "下周规划",
+          "已有飞书表格结构"
+        ],
+        "humanBoundary": "不替团队承诺未经确认的目标和日期。"
+      }
+    },
+    {
+      "id": "japan-matrix-audience-gate",
+      "title": "日本矩阵号剧情前置判断门",
+      "role": "剧情号运营",
+      "assetType": "SOP",
+      "tools": [
+        "Codex",
+        "Flova"
+      ],
+      "tasks": [
+        "剧情方向判断",
+        "受众情绪判断"
+      ],
+      "outcomes": [
+        "剧情方向建议",
+        "停止点确认"
+      ],
+      "painPoints": [
+        "直接写剧情导致方向偏",
+        "没有先判断受众和情绪钩子"
+      ],
+      "tags": [
+        "日本矩阵号",
+        "剧情",
+        "受众判断"
+      ],
+      "summary": "新剧情生成前先判断受众、情绪钩子、节奏和表达方式，确认方向后再进入正式剧情。",
+      "detailUrl": "./#asset=japan-matrix-audience-gate",
+      "skill": {
+        "available": true,
+        "installUrl": "./skills/japan-matrix-audience-gate/SKILL.md",
+        "installTarget": "$CODEX_HOME/skills"
+      },
+      "codexUse": {
+        "queryHints": [
+          "剧情方向判断",
+          "受众情绪判断",
+          "直接写剧情导致方向偏",
+          "没有先判断受众和情绪钩子",
+          "日本矩阵号",
+          "剧情",
+          "受众判断"
+        ],
+        "requiredInputs": [
+          "近期成功案例",
+          "账号定位",
+          "目标主题"
+        ],
+        "humanBoundary": "用户没有明确要求继续时，不直接生成完整剧情。"
+      }
+    },
+    {
+      "id": "capcut-edit-decision-list",
+      "title": "教程脚本转剪映执行清单",
+      "role": "教程内容运营",
+      "assetType": "SOP",
+      "tools": [
+        "Codex",
+        "剪映",
+        "CapCut"
+      ],
+      "tasks": [
+        "教程剪辑规划",
+        "字幕和重点标注"
+      ],
+      "outcomes": [
+        "剪辑决策表",
+        "字幕检查清单"
+      ],
+      "painPoints": [
+        "录屏素材没有剪辑路径",
+        "字幕断句影响理解"
+      ],
+      "tags": [
+        "剪映",
+        "教程",
+        "字幕",
+        "EDL"
+      ],
+      "summary": "把教程脚本拆成时间线、屏幕动作、字幕、强调点和导出检查项，交给剪辑阶段使用。",
+      "detailUrl": "./#asset=capcut-edit-decision-list",
+      "skill": {
+        "available": true,
+        "installUrl": "./skills/capcut-edit-decision-list/SKILL.md",
+        "installTarget": "$CODEX_HOME/skills"
+      },
+      "codexUse": {
+        "queryHints": [
+          "教程剪辑规划",
+          "字幕和重点标注",
+          "录屏素材没有剪辑路径",
+          "字幕断句影响理解",
+          "剪映",
+          "教程",
+          "字幕",
+          "EDL"
+        ],
+        "requiredInputs": [
+          "教程脚本",
+          "录屏素材列表",
+          "目标平台"
+        ],
+        "humanBoundary": "不替代最终人工观感检查。"
+      }
+    },
+    {
+      "id": "codex-skill-retrospective",
+      "title": "任务完成后沉淀流程最优解 Skill",
+      "role": "运营全员",
+      "assetType": "Skill 草稿",
+      "tools": [
+        "Codex",
+        "Feishu"
+      ],
+      "tasks": [
+        "任务复盘",
+        "Skill 草稿生成"
+      ],
+      "outcomes": [
+        "SKILL.md 草稿",
+        "岗位复用说明"
+      ],
+      "painPoints": [
+        "一次性任务没有沉淀",
+        "同事不知道怎么复用 Codex 方法"
+      ],
+      "tags": [
+        "Codex",
+        "Skill",
+        "复盘",
+        "沉淀"
+      ],
+      "summary": "任务完成后，让 Codex 把真实执行步骤、输入输出、卡点、人工边界整理成可审核的 skill 草稿。",
+      "detailUrl": "./#asset=codex-skill-retrospective",
+      "skill": {
+        "available": true,
+        "installUrl": "./skills/codex-skill-retrospective/SKILL.md",
+        "installTarget": "$CODEX_HOME/skills"
+      },
+      "codexUse": {
+        "queryHints": [
+          "任务复盘",
+          "Skill 草稿生成",
+          "一次性任务没有沉淀",
+          "同事不知道怎么复用 Codex 方法",
+          "Codex",
+          "Skill",
+          "复盘",
+          "沉淀"
+        ],
+        "requiredInputs": [
+          "任务目标",
+          "执行记录",
+          "最终产出",
+          "失败和止损点"
+        ],
+        "humanBoundary": "Skill 草稿必须经审核人确认后才能进入内部可安装区。"
+      }
+    }
+  ]
+}

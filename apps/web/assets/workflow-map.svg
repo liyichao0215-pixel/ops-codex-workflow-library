@@ -1,0 +1,27 @@
+<svg width="760" height="520" viewBox="0 0 760 520" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="运营工作流资产关系图">
+  <rect width="760" height="520" rx="24" fill="#F8FAF6"/>
+  <path d="M80 118H680M80 236H680M80 354H680M152 72V448M304 72V448M456 72V448M608 72V448" stroke="#D7DED3" stroke-width="1.4"/>
+  <rect x="74" y="92" width="178" height="86" rx="14" fill="#FFFFFF" stroke="#26342E" stroke-width="2"/>
+  <rect x="286" y="84" width="188" height="102" rx="14" fill="#E7F4EE" stroke="#2F7D64" stroke-width="2"/>
+  <rect x="508" y="96" width="154" height="78" rx="14" fill="#FFF2D6" stroke="#9B6A10" stroke-width="2"/>
+  <rect x="88" y="292" width="176" height="94" rx="14" fill="#F6E9F0" stroke="#8E4765" stroke-width="2"/>
+  <rect x="324" y="278" width="156" height="110" rx="14" fill="#FFFFFF" stroke="#26342E" stroke-width="2"/>
+  <rect x="542" y="286" width="148" height="96" rx="14" fill="#EAF0FF" stroke="#4A61A8" stroke-width="2"/>
+  <path d="M252 135C277 135 261 136 286 136" stroke="#2F7D64" stroke-width="3" stroke-linecap="round"/>
+  <path d="M474 135C498 135 484 135 508 135" stroke="#9B6A10" stroke-width="3" stroke-linecap="round"/>
+  <path d="M176 178C176 228 176 242 176 292" stroke="#8E4765" stroke-width="3" stroke-linecap="round"/>
+  <path d="M264 340C298 340 290 334 324 334" stroke="#26342E" stroke-width="3" stroke-linecap="round"/>
+  <path d="M480 334C514 334 508 334 542 334" stroke="#4A61A8" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="164" cy="135" r="18" fill="#26342E"/>
+  <circle cx="380" cy="135" r="18" fill="#2F7D64"/>
+  <circle cx="585" cy="135" r="18" fill="#9B6A10"/>
+  <circle cx="176" cy="340" r="18" fill="#8E4765"/>
+  <circle cx="402" cy="334" r="18" fill="#26342E"/>
+  <circle cx="616" cy="334" r="18" fill="#4A61A8"/>
+  <path d="M156 135h16M164 127v16" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M372 135h16M380 127v16" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M577 135h16M585 127v16" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M168 340h16M176 332v16" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M394 334h16M402 326v16" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M608 334h16M616 326v16" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+</svg>
