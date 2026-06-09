@@ -2,7 +2,7 @@ services:
   - type: web
     name: ops-codex-workflow-library
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: node --test apps/api/tests/*.test.mjs scripts/tests/*.test.mjs
     startCommand: node apps/api/server.mjs
     healthCheckPath: /api/health
@@ -15,8 +15,4 @@ services:
       - key: PUBLIC_ORIGINS
         value: https://ops-codex-workflow-library.onrender.com
       - key: OPS_DB_PATH
-        value: /opt/render/project/src/storage/ops-assets.sqlite
-    disk:
-      name: ops-assets-data
-      mountPath: /opt/render/project/src/storage
-      sizeGB: 1
+        value: /tmp/ops-assets.sqlite
