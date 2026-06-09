@@ -43,6 +43,10 @@
     .hero { margin-bottom: 16px; padding: 22px; border: 1px solid var(--line); border-radius: 8px; background: white; }
     .hero-copy { max-width: 780px; }
     .hero-copy p { margin-bottom: 0; }
+    .trial-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+    .trial-item { border: 1px solid #d6e0f5; border-radius: 8px; padding: 11px; background: #f8fbff; }
+    .trial-item strong { display: block; margin-bottom: 4px; font-size: 14px; }
+    .trial-item span { color: var(--muted); font-size: 13px; line-height: 1.45; }
     .actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
     .action-card, .panel, .asset-card, .output { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
     .action-card { display: grid; align-content: start; gap: 12px; min-height: 310px; padding: 18px; }
@@ -108,6 +112,7 @@
     @media (max-width: 980px) {
       .topbar, .topbar-left, .output-head { align-items: flex-start; flex-direction: column; }
       .actions, .asset-grid, .asset-tools, .realtime-grid, .form-grid, .inline-row { grid-template-columns: 1fr; }
+      .trial-list { grid-template-columns: 1fr; }
       .action-card { min-height: 0; }
       .shell { width: min(100% - 24px, 1180px); padding-top: 14px; }
       .tutorial-modal { padding: 12px; }
@@ -140,6 +145,11 @@
         <p class="eyebrow">这个网站只做三件事</p>
         <h2>把你的经验上传进来，让 Codex 找解决办法，再让团队 Codex 交叉验证。</h2>
         <p>同事不用研究后台。点按钮后，网站会生成完整指令、复制到剪贴板，并尝试打开 Codex 桌面版。</p>
+        <div class="trial-list" aria-label="内测任务清单">
+          <div class="trial-item"><strong>投稿 1 条</strong><span>提交一个你真实用过的方法、工具或流程。</span></div>
+          <div class="trial-item"><strong>查痛点 1 次</strong><span>说清岗位和问题，让 Codex 找可复用方案。</span></div>
+          <div class="trial-item"><strong>审核 1 条</strong><span>登记审核结论；正式发布由管理员完成。</span></div>
+        </div>
       </div>
     </section>
 
@@ -163,8 +173,8 @@
         <div class="number">2</div>
         <div>
           <p class="eyebrow">找解决办法</p>
-          <h3>用自己的 Codex 查仓库</h3>
-          <p>说岗位和痛点，让 Codex 读取网站和 GitHub 仓库，找适合你的 skill、SOP、工具或自动化流程。</p>
+          <h3>让 Codex 到资产库里找办法</h3>
+          <p>说岗位和痛点，让 Codex 读取资产库资料，找适合你的技能包、SOP、工具或自动化流程。</p>
         </div>
         <div class="field-stack">
           <label><span>我的岗位</span><input id="findRoleInput" value="短视频运营" /></label>
@@ -203,12 +213,12 @@
 
       <div class="realtime-grid">
         <div class="realtime-card">
-          <h3>1. 连接后端</h3>
+          <h3>1. 管理员设置：连接后端</h3>
           <div class="inline-row">
             <label><span>后端地址</span><input id="apiBaseInput" placeholder="例如：https://你的后端服务地址" /></label>
             <button class="btn secondary" id="saveApiBaseButton" type="button">保存并刷新</button>
           </div>
-          <p class="pool-message">本地测试默认用 <strong>http://127.0.0.1:8787</strong>。正式给同事用时，把云后端地址填在这里。</p>
+          <p class="pool-message">普通同事不用处理这里。本地测试会自动连接；正式内测时，由管理员填云后端地址。</p>
         </div>
 
         <div class="realtime-card">
@@ -219,7 +229,7 @@
             <label><span>适用岗位</span><input id="submitRoleInput" placeholder="例如：短视频运营" /></label>
             <label><span>主分类</span><select id="submitCategoryInput"></select></label>
             <label class="wide"><span>工具或链接，可不填</span><input id="submitUrlInput" placeholder="https://... 或工具名称" /></label>
-            <label class="wide"><span>一句话说明怎么用</span><textarea id="submitSummaryInput" placeholder="让 Codex 把流程整理后粘贴到这里。写清楚适合什么场景、解决什么痛点、人工边界是什么。"></textarea></label>
+            <label class="wide"><span>一句话说明怎么用</span><textarea id="submitSummaryInput" placeholder="模板：适合谁 / 解决什么问题 / 怎么做 / 人工要检查什么。提交前请删掉账号、密码、密钥/token、客户信息和公司内部路径。"></textarea></label>
           </div>
           <button class="btn green block" id="submitToPoolButton" type="button">提交到待审核投稿池</button>
           <p class="pool-message" id="submitPoolMessage">提交后，其他同事刷新页面就能看到，但它还不是正式资产。</p>
@@ -230,7 +240,7 @@
         <div class="output-head">
           <div>
             <h3>3. 等待审核的投稿</h3>
-            <p class="hint">建议至少 2 个同事用 Codex 交叉审核，再由管理员点“审核通过发布”。</p>
+            <p class="hint">同事只登记审核结论；正式发布由管理员完成。建议至少 2 个同事用 Codex 交叉审核。</p>
           </div>
           <button class="btn secondary" id="refreshPoolButton" type="button">刷新投稿池</button>
         </div>
@@ -263,7 +273,7 @@
         <button class="btn secondary" id="copyAgainButton" type="button">再次复制</button>
       </div>
       <textarea id="outputText" readonly></textarea>
-      <div class="notice">浏览器可能会拦截 <strong>codex://</strong> 打开动作。只要这里显示了指令，同事手动打开 Codex 粘贴也能继续。</div>
+      <div class="notice"><strong>codex://</strong> 是浏览器自动打开 Codex 的动作，可能会被拦截。只要这里显示了指令，同事手动打开 Codex 粘贴也能继续。</div>
     </section>
   </main>
 
