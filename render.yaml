@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ops-codex-workflow-library
+    runtime: node
+    plan: starter
+    buildCommand: node --test apps/api/tests/*.test.mjs scripts/tests/*.test.mjs
+    startCommand: node apps/api/server.mjs
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: 24
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: PUBLIC_ORIGINS
+        value: https://ops-codex-workflow-library.onrender.com
+      - key: OPS_DB_PATH
+        value: /opt/render/project/src/storage/ops-assets.sqlite
+    disk:
+      name: ops-assets-data
+      mountPath: /opt/render/project/src/storage
+      sizeGB: 1

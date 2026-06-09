@@ -9,7 +9,8 @@
     "web": "python3 -m http.server 4174 --bind 127.0.0.1 --directory apps/web",
     "test": "node --test apps/api/tests/*.test.mjs scripts/tests/*.test.mjs",
     "backup": "node scripts/backup-sqlite.mjs",
-    "export": "node scripts/export-assets.mjs"
+    "export": "node scripts/export-assets.mjs",
+    "write-web-config": "node scripts/write-web-config.mjs"
   },
   "engines": {
     "node": ">=24.0.0"

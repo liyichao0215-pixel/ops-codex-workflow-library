@@ -4,5 +4,7 @@ apps/api/data/
 backups/
 exports/
 *.log
+.server.pid
 .env
 .env.*
+!.env.example

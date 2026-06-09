@@ -44,7 +44,30 @@ http://127.0.0.1:8787
 ## 验证
 
 ```bash
-node --test apps/api/tests/*.test.mjs
+node --test apps/api/tests/*.test.mjs scripts/tests/*.test.mjs
+```
+
+## 云端内测
+
+M1 最快路径是部署一个 Render Web Service：前端页面和后端 API 使用同一个 URL，SQLite 写入持久盘。
+
+项目根目录已经提供：
+
+```text
+render.yaml
+.env.example
+```
+
+部署前必须设置：
+
+```text
+ADMIN_TOKEN
+```
+
+部署后检查：
+
+```text
+/api/health
 ```
 
 ## 内测原则
