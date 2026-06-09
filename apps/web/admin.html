@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>管理员工作台 - 运营 Codex 工作流资产库</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17191f;
+      --muted: #69707d;
+      --line: #dfe3ea;
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --dark: #111318;
+      --blue: #2454c6;
+      --blue-soft: #edf2ff;
+      --green: #17745b;
+      --green-soft: #eaf7f1;
+      --amber: #95600a;
+      --amber-soft: #fff6df;
+      --red: #b42318;
+      --red-soft: #fff1f0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--bg); letter-spacing: 0; }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 0; font-size: clamp(28px, 4vw, 44px); line-height: 1.06; }
+    h2 { margin-bottom: 8px; font-size: 22px; }
+    h3 { margin-bottom: 8px; font-size: 16px; }
+    p { color: var(--muted); line-height: 1.62; }
+    .shell { width: min(1240px, calc(100% - 32px)); margin: 0 auto; padding: 22px 0 44px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 8px; background: var(--dark); color: #fff; font-weight: 820; }
+    .eyebrow { margin: 0 0 5px; color: var(--blue); font-size: 12px; font-weight: 760; }
+    .link-pill, .btn { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; background: #fff; color: #343a46; font-size: 13px; font-weight: 740; white-space: nowrap; }
+    .btn.primary { border-color: var(--blue); color: #fff; background: var(--blue); }
+    .btn.green { border-color: var(--green); color: #fff; background: var(--green); }
+    .btn.amber { border-color: var(--amber); color: #fff; background: var(--amber); }
+    .btn.danger { border-color: var(--red); color: #fff; background: var(--red); }
+    .btn:disabled { cursor: not-allowed; opacity: .55; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 390px); gap: 16px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 24px 0; margin-bottom: 22px; }
+    .hero p { max-width: 720px; }
+    .login-panel, .card, .stat { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+    .login-panel { display: grid; gap: 10px; padding: 14px; align-content: start; }
+    label span { display: block; margin-bottom: 6px; color: #343a46; font-size: 12px; font-weight: 740; }
+    input, textarea { width: 100%; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; background: #fff; color: var(--ink); }
+    textarea { min-height: 92px; resize: vertical; line-height: 1.55; }
+    .status-line { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill, .tag { display: inline-flex; align-items: center; min-height: 26px; border: 1px solid var(--line); border-radius: 999px; padding: 0 9px; background: #fff; color: #4b5565; font-size: 12px; font-weight: 720; }
+    .pill.online, .tag.green { border-color: #bde4d4; color: var(--green); background: var(--green-soft); }
+    .tag.amber { border-color: #f3d28b; color: var(--amber); background: var(--amber-soft); }
+    .tag.red { border-color: #ffc9c3; color: var(--red); background: var(--red-soft); }
+    .grid { display: grid; grid-template-columns: minmax(340px, .92fr) minmax(0, 1.08fr); gap: 14px; align-items: start; }
+    .stack { display: grid; gap: 14px; }
+    .card { padding: 14px; }
+    .card-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 10px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .stat { padding: 12px; }
+    .stat strong { display: block; font-size: 26px; line-height: 1; margin-bottom: 6px; }
+    .stat span { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .list { display: grid; gap: 10px; }
+    .item { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfd; padding: 12px; }
+    .item h3, .item p { margin-bottom: 0; }
+    .meta, .actions { display: flex; flex-wrap: wrap; gap: 7px; }
+    .actions .btn { min-height: 34px; }
+    .admin-row { display: grid; grid-template-columns: minmax(120px, .8fr) minmax(130px, .9fr) minmax(180px, 1.3fr); gap: 8px; }
+    .message { margin: 10px 0 0; font-size: 13px; line-height: 1.55; color: var(--muted); }
+    .message.error { color: var(--red); }
+    .empty { border: 1px dashed var(--line); border-radius: 8px; padding: 18px; color: var(--muted); text-align: center; background: #fff; }
+    .hidden { display: none !important; }
+    @media (max-width: 900px) {
+      .hero, .grid, .stats, .admin-row { grid-template-columns: 1fr; }
+      .topbar, .card-head { align-items: flex-start; flex-direction: column; }
+      .shell { width: min(100% - 24px, 1240px); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell" admin-ui-version="admin-v1">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">OC</div>
+        <div>
+          <p class="eyebrow">管理员工作台</p>
+          <h2>运营 Codex 工作流资产库</h2>
+        </div>
+      </div>
+      <div class="status-line">
+        <a class="link-pill" href="/">返回前台</a>
+        <button class="btn" id="refreshButton" type="button">刷新</button>
+        <button class="btn primary" id="exportButton" type="button">导出备份</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">轻量后台</p>
+        <h1>审核投稿、合并重复、维护管理员名单。</h1>
+        <p>当前 M1 版本使用 <strong>ADMIN_TOKEN</strong> 作为管理员密码。管理员名单用于团队协作分工；在正式持久化数据库前，不建议把它当作企业级账号系统。</p>
+        <div class="status-line">
+          <span class="pill" id="authStatus">未登录</span>
+          <span class="pill" id="dbWarning">Free 临时库：请定期导出</span>
+        </div>
+      </div>
+      <div class="login-panel">
+        <label><span>管理员密码 ADMIN_TOKEN</span><input id="adminTokenInput" type="password" placeholder="输入管理员密码" /></label>
+        <button class="btn primary" id="loginButton" type="button">进入后台</button>
+        <p class="message" id="loginMessage">建议只给你、团队老大和老板。</p>
+      </div>
+    </section>
+
+    <section class="stats" id="statsPanel">
+      <div class="stat"><strong id="statPending">0</strong><span>待审核投稿</span></div>
+      <div class="stat"><strong id="statAssets">0</strong><span>正式资产</span></div>
+      <div class="stat"><strong id="statReviews">0</strong><span>审核记录</span></div>
+      <div class="stat"><strong id="statAdmins">0</strong><span>管理员</span></div>
+    </section>
+
+    <section class="grid">
+      <div class="stack">
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">待审核投稿</p>
+              <h2>发布、退回、重复合并</h2>
+            </div>
+          </div>
+          <div class="list" id="submissionList"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">管理员名单</p>
+              <h2>最小管理员配置</h2>
+            </div>
+            <button class="btn green" id="saveAdminsButton" type="button">保存名单</button>
+          </div>
+          <div class="list" id="adminRows"></div>
+          <p class="message">权限说明只用于协作分工；实际操作仍由 ADMIN_TOKEN 保护。</p>
+        </article>
+      </div>
+
+      <div class="stack">
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">正式资产</p>
+              <h2>当前资产库</h2>
+            </div>
+          </div>
+          <div class="list" id="assetList"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">操作记录</p>
+              <h2>后台审计</h2>
+            </div>
+          </div>
+          <div class="list" id="auditList"></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const TOKEN_KEY = 'opsCodexAdminToken';
+    const state = { token: localStorage.getItem(TOKEN_KEY) || '', data: null };
+    const el = (id) => document.getElementById(id);
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+    function headers() {
+      return { 'Content-Type': 'application/json', 'X-Admin-Token': state.token };
+    }
+
+    async function adminFetch(path, options = {}) {
+      const response = await fetch(path, { ...options, headers: { ...headers(), ...(options.headers || {}) } });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || '后台请求失败');
+      return data;
+    }
+
+    function setMessage(message, error = false) {
+      el('loginMessage').textContent = message;
+      el('loginMessage').classList.toggle('error', error);
+    }
+
+    function tag(text, tone = '') {
+      return '<span class="tag ' + tone + '">' + escapeHtml(text) + '</span>';
+    }
+
+    function duplicateTarget(submission) {
+      return (submission.duplicateCandidates || []).find((item) => item.status === 'approved');
+    }
+
+    function renderStats() {
+      const stats = state.data?.stats || {};
+      const settings = state.data?.settings || {};
+      el('statPending').textContent = stats.pending || 0;
+      el('statAssets').textContent = stats.approvedAssets || 0;
+      el('statReviews').textContent = stats.reviews || 0;
+      el('statAdmins').textContent = (settings.admins || []).length;
+      el('authStatus').textContent = state.token ? '管理员已登录' : '未登录';
+      el('authStatus').classList.toggle('online', Boolean(state.token));
+    }
+
+    function renderSubmissions() {
+      const submissions = (state.data?.submissions || []).filter((item) => item.status === 'pending');
+      if (!submissions.length) {
+        el('submissionList').innerHTML = '<div class="empty">暂无待审核投稿。</div>';
+        return;
+      }
+      el('submissionList').innerHTML = submissions.map((submission) => {
+        const duplicate = duplicateTarget(submission);
+        return '<article class="item">' +
+          '<div class="meta">' +
+            tag(submission.primaryCategory || '待分类') +
+            tag(submission.role || '待判断', 'green') +
+            (duplicate ? tag('重复合并', 'amber') : tag('新资产候选')) +
+          '</div>' +
+          '<h3>' + escapeHtml(submission.title) + '</h3>' +
+          '<p>' + escapeHtml(submission.summary) + '</p>' +
+          (duplicate ? '<p class="message">将更新已有资产：' + escapeHtml(duplicate.title) + '</p>' : '') +
+          '<div class="actions">' +
+            '<button class="btn green" data-action="approve" data-id="' + escapeHtml(submission.id) + '">审核通过发布</button>' +
+            '<button class="btn amber" data-action="changes" data-id="' + escapeHtml(submission.id) + '">标记需补充</button>' +
+            '<button class="btn danger" data-action="reject" data-id="' + escapeHtml(submission.id) + '">退回</button>' +
+          '</div>' +
+        '</article>';
+      }).join('');
+      document.querySelectorAll('[data-action]').forEach((button) => {
+        button.addEventListener('click', () => handleSubmissionAction(button.dataset.id, button.dataset.action));
+      });
+    }
+
+    function renderAssets() {
+      const assets = (state.data?.assets || []).slice(0, 18);
+      el('assetList').innerHTML = assets.length ? assets.map((asset) => (
+        '<article class="item">' +
+          '<div class="meta">' + tag(asset.primaryCategory || asset.assetType || '资产') + tag(asset.role || '运营同事', 'green') + '</div>' +
+          '<h3>' + escapeHtml(asset.title) + '</h3>' +
+          '<p>' + escapeHtml(asset.summary) + '</p>' +
+        '</article>'
+      )).join('') : '<div class="empty">暂无正式资产。</div>';
+    }
+
+    function renderAdmins() {
+      const admins = state.data?.settings?.admins || [];
+      el('adminRows').innerHTML = admins.map((admin, index) => (
+        '<div class="admin-row" data-index="' + index + '">' +
+          '<label><span>姓名</span><input data-field="name" value="' + escapeHtml(admin.name) + '" /></label>' +
+          '<label><span>角色</span><input data-field="role" value="' + escapeHtml(admin.role) + '" /></label>' +
+          '<label><span>权限</span><input data-field="permissions" value="' + escapeHtml((admin.permissions || []).join('、')) + '" /></label>' +
+        '</div>'
+      )).join('');
+    }
+
+    function renderAudit() {
+      const auditLog = state.data?.auditLog || [];
+      el('auditList').innerHTML = auditLog.length ? auditLog.map((entry) => (
+        '<article class="item">' +
+          '<div class="meta">' + tag(entry.type, 'amber') + '</div>' +
+          '<p>' + escapeHtml(entry.message) + '</p>' +
+          '<p class="message">' + escapeHtml((entry.createdAt || '').slice(0, 19).replace('T', ' ')) + '</p>' +
+        '</article>'
+      )).join('') : '<div class="empty">暂无操作记录。</div>';
+    }
+
+    function render() {
+      renderStats();
+      renderSubmissions();
+      renderAssets();
+      renderAdmins();
+      renderAudit();
+    }
+
+    async function refresh() {
+      if (!state.token) {
+        setMessage('请输入 ADMIN_TOKEN 后进入后台。', true);
+        renderStats();
+        return;
+      }
+      try {
+        state.data = await adminFetch('/api/admin/bootstrap');
+        localStorage.setItem(TOKEN_KEY, state.token);
+        setMessage('后台数据已刷新。');
+        render();
+      } catch (error) {
+        setMessage(error.message, true);
+      }
+    }
+
+    async function handleSubmissionAction(id, action) {
+      const submission = (state.data?.submissions || []).find((item) => item.id === id);
+      if (!submission) return;
+      const duplicate = duplicateTarget(submission);
+      const path = action === 'approve'
+        ? '/api/submissions/' + encodeURIComponent(id) + '/approve'
+        : '/api/submissions/' + encodeURIComponent(id) + '/' + (action === 'reject' ? 'reject' : 'request-changes');
+      const body = action === 'approve'
+        ? {
+            title: submission.title,
+            role: submission.role,
+            primaryCategory: submission.primaryCategory,
+            summary: submission.summary,
+            owner: submission.submitter,
+            duplicateMode: duplicate ? 'update_existing' : '',
+            targetAssetId: duplicate ? duplicate.id : '',
+          }
+        : {};
+      try {
+        await adminFetch(path, { method: 'POST', body: JSON.stringify(body) });
+        setMessage(action === 'approve' ? '已发布或更新资产。' : '投稿状态已更新。');
+        await refresh();
+      } catch (error) {
+        setMessage(error.message, true);
+      }
+    }
+
+    async function saveAdmins() {
+      const admins = Array.from(document.querySelectorAll('.admin-row')).map((row) => ({
+        name: row.querySelector('[data-field="name"]').value,
+        role: row.querySelector('[data-field="role"]').value,
+        permissions: row.querySelector('[data-field="permissions"]').value.split(/[、,，]/).map((item) => item.trim()).filter(Boolean),
+      }));
+      try {
+        const result = await adminFetch('/api/admin/settings', { method: 'POST', body: JSON.stringify({ admins }) });
+        state.data.settings = result.settings;
+        state.data.auditLog = result.auditLog;
+        setMessage('管理员名单已保存。');
+        render();
+      } catch (error) {
+        setMessage(error.message, true);
+      }
+    }
+
+    async function exportBackup() {
+      try {
+        const data = await adminFetch('/api/admin/export');
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'ops-codex-assets-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+        link.click();
+        URL.revokeObjectURL(url);
+        setMessage('已生成导出备份。');
+      } catch (error) {
+        setMessage(error.message, true);
+      }
+    }
+
+    el('adminTokenInput').value = state.token;
+    el('loginButton').addEventListener('click', () => {
+      state.token = el('adminTokenInput').value.trim();
+      refresh();
+    });
+    el('refreshButton').addEventListener('click', refresh);
+    el('saveAdminsButton').addEventListener('click', saveAdmins);
+    el('exportButton').addEventListener('click', exportBackup);
+    if (state.token) refresh();
+    else render();
+  </script>
+</body>
+</html>

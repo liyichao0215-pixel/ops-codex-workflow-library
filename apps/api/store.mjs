@@ -5,6 +5,14 @@ import { DatabaseSync } from 'node:sqlite';
 import { workflowAssets } from '../../data/seed-assets.mjs';
 
 const DEFAULT_REQUIRED_APPROVALS = 2;
+const DEFAULT_ADMIN_SETTINGS = {
+  admins: [
+    { name: '李忆超', role: '超级管理员', permissions: ['配置系统', '发布资产', '合并重复', '导出备份', '紧急下架'] },
+    { name: '团队老大', role: '发布管理员', permissions: ['审核发布', '退回补充', '合并重复'] },
+    { name: '老板', role: '观察/决策管理员', permissions: ['查看数据', '查看审核状态', '最终确认'] },
+  ],
+  note: 'M1 先使用 ADMIN_TOKEN 作为管理员密码；正式持久化后再升级为真实账号登录。',
+};
 
 function nowIso() {
   return new Date().toISOString();
@@ -306,6 +314,12 @@ function migrate(db) {
       message TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value_json TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
   `);
 }
 
@@ -370,6 +384,19 @@ function createStore(db) {
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
+  const upsertSetting = db.prepare(`
+    INSERT INTO settings (key, value_json, updated_at)
+    VALUES (?, ?, ?)
+    ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at
+  `);
+  const insertAudit = db.prepare(`
+    INSERT INTO audit_log (id, type, message, created_at)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  function appendAudit(type, message) {
+    insertAudit.run(createId('audit'), cleanText(type, 80), cleanText(message, 1000), nowIso());
+  }
 
   return {
     close() {
@@ -382,6 +409,49 @@ function createStore(db) {
       const approvedAssets = db.prepare("SELECT COUNT(*) AS count FROM assets WHERE status = 'approved'").get().count;
       const reviews = db.prepare('SELECT COUNT(*) AS count FROM reviews').get().count;
       return { submissions, pending, approvedAssets, reviews, requiredApprovals: DEFAULT_REQUIRED_APPROVALS };
+    },
+
+    audit(type, message) {
+      appendAudit(type, message);
+    },
+
+    listAuditLog(limit = 80) {
+      return db.prepare('SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ?').all(limit).map((row) => ({
+        id: row.id,
+        type: row.type,
+        message: row.message,
+        createdAt: row.created_at,
+      }));
+    },
+
+    getSetting(key, fallback = null) {
+      const row = db.prepare('SELECT value_json FROM settings WHERE key = ?').get(key);
+      return row ? parseJson(row.value_json, fallback) : fallback;
+    },
+
+    setSetting(key, value) {
+      upsertSetting.run(cleanText(key, 120), toJson(value), nowIso());
+      return value;
+    },
+
+    getAdminSettings() {
+      return this.getSetting('adminSettings', DEFAULT_ADMIN_SETTINGS);
+    },
+
+    updateAdminSettings(input = {}) {
+      const admins = Array.isArray(input.admins) ? input.admins : DEFAULT_ADMIN_SETTINGS.admins;
+      const settings = {
+        admins: admins.slice(0, 12).map((admin) => ({
+          name: cleanText(admin.name, 80) || '未命名管理员',
+          role: cleanText(admin.role, 80) || '管理员',
+          permissions: listFrom(admin.permissions).slice(0, 12),
+        })),
+        note: cleanText(input.note, 600) || DEFAULT_ADMIN_SETTINGS.note,
+        updatedAt: nowIso(),
+      };
+      this.setSetting('adminSettings', settings);
+      appendAudit('admin_settings_updated', `管理员名单已更新，共 ${settings.admins.length} 人`);
+      return settings;
     },
 
     listSubmissions(status = 'pending') {
@@ -518,6 +588,7 @@ function createStore(db) {
     setSubmissionStatus(id, status) {
       const timestamp = nowIso();
       db.prepare('UPDATE submissions SET status = ?, updated_at = ?, reviewed_at = ? WHERE id = ?').run(status, timestamp, timestamp, id);
+      appendAudit('submission_status', `投稿 ${id} 状态更新为 ${status}`);
       return this.getSubmission(id);
     },
 
@@ -611,7 +682,20 @@ function createStore(db) {
         );
       }
       db.prepare('UPDATE submissions SET status = ?, updated_at = ?, approved_at = ? WHERE id = ?').run('approved', timestamp, timestamp, id);
+      appendAudit('submission_approved', `投稿 ${id} 已发布为资产 ${payload.id}`);
       return rowToAsset(db.prepare('SELECT * FROM assets WHERE id = ?').get(payload.id));
+    },
+
+    exportData() {
+      return {
+        exportedAt: nowIso(),
+        stats: this.stats(),
+        settings: this.getAdminSettings(),
+        assets: this.listAssets(),
+        submissions: this.listSubmissions('all'),
+        reviews: db.prepare('SELECT * FROM reviews ORDER BY created_at DESC').all().map(rowToReview),
+        auditLog: this.listAuditLog(500),
+      };
     },
   };
 }

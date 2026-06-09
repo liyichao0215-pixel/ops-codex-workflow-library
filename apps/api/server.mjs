@@ -9,7 +9,7 @@ const backendRoot = fileURLToPath(new URL('./', import.meta.url));
 const siteRoot = fileURLToPath(new URL('../web/', import.meta.url));
 const dbPath = process.env.OPS_DB_PATH || join(backendRoot, 'data/ops-assets.sqlite');
 const port = Number(process.env.PORT || 8787);
-const adminToken = process.env.ADMIN_TOKEN || '';
+const defaultAdminToken = process.env.ADMIN_TOKEN || '';
 const allowedOrigins = new Set(
   (process.env.PUBLIC_ORIGINS ||
     'http://127.0.0.1:4174,http://localhost:4174,https://liyichao0215-pixel.github.io')
@@ -68,9 +68,9 @@ async function parseBody(req) {
   return JSON.parse(text);
 }
 
-function requireAdmin(req) {
-  if (!adminToken) return true;
-  return req.headers['x-admin-token'] === adminToken;
+function requireAdmin(req, runtimeAdminToken) {
+  if (!runtimeAdminToken) return true;
+  return req.headers['x-admin-token'] === runtimeAdminToken;
 }
 
 function rateLimit(req) {
@@ -86,7 +86,7 @@ function rateLimit(req) {
   return count <= 80;
 }
 
-async function handleApi(req, res, url, store) {
+async function handleApi(req, res, url, store, runtimeAdminToken) {
   if (req.method === 'OPTIONS') {
     jsonResponse(req, res, 200, { ok: true });
     return;
@@ -107,6 +107,34 @@ async function handleApi(req, res, url, store) {
       assets: store.listAssets(),
       submissions: store.listSubmissions(url.searchParams.get('status') || 'pending'),
     });
+    return;
+  }
+
+  if (url.pathname.startsWith('/api/admin/')) {
+    if (!requireAdmin(req, runtimeAdminToken)) {
+      errorResponse(req, res, 401, 'admin token required');
+      return;
+    }
+    if (req.method === 'GET' && url.pathname === '/api/admin/bootstrap') {
+      jsonResponse(req, res, 200, {
+        stats: store.stats(),
+        assets: store.listAssets(),
+        submissions: store.listSubmissions('all'),
+        settings: store.getAdminSettings(),
+        auditLog: store.listAuditLog(),
+      });
+      return;
+    }
+    if (req.method === 'POST' && url.pathname === '/api/admin/settings') {
+      const settings = store.updateAdminSettings(await parseBody(req));
+      jsonResponse(req, res, 200, { settings, auditLog: store.listAuditLog() });
+      return;
+    }
+    if (req.method === 'GET' && url.pathname === '/api/admin/export') {
+      jsonResponse(req, res, 200, store.exportData());
+      return;
+    }
+    errorResponse(req, res, 404, 'admin route not found');
     return;
   }
 
@@ -152,7 +180,7 @@ async function handleApi(req, res, url, store) {
 
   const statusMatch = url.pathname.match(/^\/api\/submissions\/([^/]+)\/(approve|reject|request-changes)$/);
   if (req.method === 'POST' && statusMatch) {
-    if (!requireAdmin(req)) {
+    if (!requireAdmin(req, runtimeAdminToken)) {
       errorResponse(req, res, 401, 'admin token required');
       return;
     }
@@ -172,7 +200,7 @@ async function handleApi(req, res, url, store) {
 }
 
 async function serveStatic(req, res, url) {
-  const rawPath = url.pathname === '/' ? '/index.html' : decodeURIComponent(url.pathname);
+  const rawPath = url.pathname === '/' ? '/index.html' : (url.pathname === '/admin' ? '/admin.html' : decodeURIComponent(url.pathname));
   const safePath = normalize(rawPath).replace(/^(\.\.[/\\])+/, '');
   const filePath = join(siteRoot, safePath);
   if (!filePath.startsWith(siteRoot)) {
@@ -192,11 +220,12 @@ async function serveStatic(req, res, url) {
 
 export async function createApp(options = {}) {
   const store = await openStore(options.dbPath || dbPath);
+  const runtimeAdminToken = options.adminToken ?? defaultAdminToken;
   const server = createServer(async (req, res) => {
     const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
     try {
       if (url.pathname.startsWith('/api/')) {
-        await handleApi(req, res, url, store);
+        await handleApi(req, res, url, store, runtimeAdminToken);
         return;
       }
       await serveStatic(req, res, url);
@@ -213,6 +242,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   server.listen(port, () => {
     console.log(`Ops Codex realtime backend: http://127.0.0.1:${port}`);
     console.log(`Database: ${dbPath}`);
-    if (!adminToken) console.log('ADMIN_TOKEN is not set; approval endpoints are open for local testing.');
+    if (!defaultAdminToken) console.log('ADMIN_TOKEN is not set; approval endpoints are open for local testing.');
   });
 }
