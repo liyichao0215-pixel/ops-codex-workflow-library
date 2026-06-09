@@ -70,6 +70,12 @@ ADMIN_TOKEN
 /api/health
 ```
 
+或直接运行：
+
+```bash
+node scripts/m1-smoke-test.mjs 云端URL
+```
+
 ## 内测原则
 
 - 先支持 2-3 位同事真实试用。

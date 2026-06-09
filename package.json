@@ -10,7 +10,8 @@
     "test": "node --test apps/api/tests/*.test.mjs scripts/tests/*.test.mjs",
     "backup": "node scripts/backup-sqlite.mjs",
     "export": "node scripts/export-assets.mjs",
-    "write-web-config": "node scripts/write-web-config.mjs"
+    "write-web-config": "node scripts/write-web-config.mjs",
+    "smoke:m1": "node scripts/m1-smoke-test.mjs"
   },
   "engines": {
     "node": ">=24.0.0"
