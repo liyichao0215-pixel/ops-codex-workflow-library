@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { openStore } from './store.mjs';
 
@@ -201,7 +201,7 @@ export async function createApp(options = {}) {
   return server;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const server = await createApp();
   server.listen(port, () => {
     console.log(`Ops Codex realtime backend: http://127.0.0.1:${port}`);
