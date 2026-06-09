@@ -7,7 +7,7 @@
     "start": "node apps/api/server.mjs",
     "api": "node apps/api/server.mjs",
     "web": "python3 -m http.server 4174 --bind 127.0.0.1 --directory apps/web",
-    "test": "node --test apps/api/tests/*.test.mjs",
+    "test": "node --test apps/api/tests/*.test.mjs scripts/tests/*.test.mjs",
     "backup": "node scripts/backup-sqlite.mjs",
     "export": "node scripts/export-assets.mjs"
   },

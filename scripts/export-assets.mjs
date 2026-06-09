@@ -1,6 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { access, mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
 
 const dbPath = process.env.OPS_DB_PATH || 'apps/api/data/ops-assets.sqlite';
 const outPath = process.env.OPS_EXPORT_PATH || 'exports/assets.json';
@@ -37,11 +36,21 @@ function rowToAsset(row) {
   };
 }
 
+try {
+  await access(dbPath);
+} catch {
+  console.error(`Database not found: ${dbPath}. Please start the API server first so SQLite can be created.`);
+  process.exit(1);
+}
+
+const { DatabaseSync } = await import('node:sqlite');
 const db = new DatabaseSync(dbPath, { readOnly: true });
-const rows = db
-  .prepare("SELECT * FROM assets WHERE status = 'approved' ORDER BY updated_at DESC, title ASC")
-  .all();
-db.close();
+let rows = [];
+try {
+  rows = db.prepare("SELECT * FROM assets WHERE status = 'approved' ORDER BY updated_at DESC, title ASC").all();
+} finally {
+  db.close();
+}
 
 await mkdir(dirname(outPath), { recursive: true });
 await writeFile(outPath, `${JSON.stringify(rows.map(rowToAsset), null, 2)}\n`, 'utf8');

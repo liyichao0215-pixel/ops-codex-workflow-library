@@ -10,7 +10,11 @@ function timestamp() {
 }
 
 async function main() {
-  await access(dbPath);
+  try {
+    await access(dbPath);
+  } catch {
+    throw new Error(`Database not found: ${dbPath}. Please start the API server first so SQLite can be created.`);
+  }
   const target = join(backupDir, `${timestamp()}-${basename(dbPath)}`);
   if (dryRun) {
     console.log(`Would back up ${dbPath} to ${target}`);
