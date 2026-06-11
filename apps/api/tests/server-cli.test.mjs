@@ -38,6 +38,7 @@ test('server CLI starts when launched from a path with non-ascii characters', as
       ...process.env,
       PORT: '18978',
       ADMIN_TOKEN: 'test-admin',
+      DATA_SOURCE: 'sqlite',
       OPS_DB_PATH: join(dir, 'ops-assets.sqlite'),
     },
     stdio: ['ignore', 'pipe', 'pipe'],

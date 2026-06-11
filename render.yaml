@@ -3,7 +3,7 @@ services:
     name: ops-codex-workflow-library
     runtime: node
     plan: free
-    buildCommand: node --test apps/api/tests/*.test.mjs scripts/tests/*.test.mjs
+    buildCommand: DATA_SOURCE=sqlite node --test apps/api/tests/*.test.mjs scripts/tests/*.test.mjs
     startCommand: node apps/api/server.mjs
     healthCheckPath: /api/health
     autoDeployTrigger: commit
