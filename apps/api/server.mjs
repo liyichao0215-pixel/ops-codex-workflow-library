@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { openStore } from './store.mjs';
+import { openDataSource } from './data-source.mjs';
 
 const backendRoot = fileURLToPath(new URL('./', import.meta.url));
 const siteRoot = fileURLToPath(new URL('../web/', import.meta.url));
@@ -97,15 +97,20 @@ async function handleApi(req, res, url, store, runtimeAdminToken) {
   }
 
   if (req.method === 'GET' && url.pathname === '/api/health') {
-    jsonResponse(req, res, 200, { ok: true, mode: 'realtime-backend', stats: store.stats() });
+    jsonResponse(req, res, 200, {
+      ok: true,
+      mode: 'realtime-backend',
+      dataSource: store.dataSource || 'sqlite',
+      stats: await store.stats(),
+    });
     return;
   }
 
   if (req.method === 'GET' && url.pathname === '/api/bootstrap') {
     jsonResponse(req, res, 200, {
-      stats: store.stats(),
-      assets: store.listAssets(),
-      submissions: store.listSubmissions(url.searchParams.get('status') || 'pending'),
+      stats: await store.stats(),
+      assets: await store.listAssets(),
+      submissions: await store.listSubmissions(url.searchParams.get('status') || 'pending'),
     });
     return;
   }
@@ -117,21 +122,21 @@ async function handleApi(req, res, url, store, runtimeAdminToken) {
     }
     if (req.method === 'GET' && url.pathname === '/api/admin/bootstrap') {
       jsonResponse(req, res, 200, {
-        stats: store.stats(),
-        assets: store.listAssets(),
-        submissions: store.listSubmissions('all'),
-        settings: store.getAdminSettings(),
-        auditLog: store.listAuditLog(),
+        stats: await store.stats(),
+        assets: await store.listAssets(),
+        submissions: await store.listSubmissions('all'),
+        settings: await store.getAdminSettings(),
+        auditLog: await store.listAuditLog(),
       });
       return;
     }
     if (req.method === 'POST' && url.pathname === '/api/admin/settings') {
-      const settings = store.updateAdminSettings(await parseBody(req));
-      jsonResponse(req, res, 200, { settings, auditLog: store.listAuditLog() });
+      const settings = await store.updateAdminSettings(await parseBody(req));
+      jsonResponse(req, res, 200, { settings, auditLog: await store.listAuditLog() });
       return;
     }
     if (req.method === 'GET' && url.pathname === '/api/admin/export') {
-      jsonResponse(req, res, 200, store.exportData());
+      jsonResponse(req, res, 200, await store.exportData());
       return;
     }
     errorResponse(req, res, 404, 'admin route not found');
@@ -139,22 +144,22 @@ async function handleApi(req, res, url, store, runtimeAdminToken) {
   }
 
   if (req.method === 'GET' && url.pathname === '/api/assets') {
-    jsonResponse(req, res, 200, { assets: store.listAssets(), stats: store.stats() });
+    jsonResponse(req, res, 200, { assets: await store.listAssets(), stats: await store.stats() });
     return;
   }
 
   if (req.method === 'GET' && url.pathname === '/api/submissions') {
     jsonResponse(req, res, 200, {
-      submissions: store.listSubmissions(url.searchParams.get('status') || 'pending'),
-      stats: store.stats(),
+      submissions: await store.listSubmissions(url.searchParams.get('status') || 'pending'),
+      stats: await store.stats(),
     });
     return;
   }
 
   if (req.method === 'POST' && url.pathname === '/api/submissions') {
     const body = await parseBody(req);
-    const submission = store.createSubmission(body);
-    jsonResponse(req, res, 201, { submission, stats: store.stats() });
+    const submission = await store.createSubmission(body);
+    jsonResponse(req, res, 201, { submission, stats: await store.stats() });
     return;
   }
 
@@ -162,18 +167,18 @@ async function handleApi(req, res, url, store, runtimeAdminToken) {
   if (req.method === 'GET' && reviewMatch) {
     const submissionId = decodeURIComponent(reviewMatch[1]);
     jsonResponse(req, res, 200, {
-      submission: store.getSubmission(submissionId),
-      reviews: store.listReviews(submissionId),
-      summary: store.reviewSummary(submissionId),
+      submission: await store.getSubmission(submissionId),
+      reviews: await store.listReviews(submissionId),
+      summary: await store.reviewSummary(submissionId),
     });
     return;
   }
   if (req.method === 'POST' && reviewMatch) {
     const submissionId = decodeURIComponent(reviewMatch[1]);
-    const review = store.createReview(submissionId, await parseBody(req));
+    const review = await store.createReview(submissionId, await parseBody(req));
     jsonResponse(req, res, 201, {
       review,
-      summary: store.reviewSummary(submissionId),
+      summary: await store.reviewSummary(submissionId),
     });
     return;
   }
@@ -187,12 +192,12 @@ async function handleApi(req, res, url, store, runtimeAdminToken) {
     const submissionId = decodeURIComponent(statusMatch[1]);
     const action = statusMatch[2];
     if (action === 'approve') {
-      const asset = store.approveSubmission(submissionId, await parseBody(req));
-      jsonResponse(req, res, 200, { asset, submission: store.getSubmission(submissionId), stats: store.stats() });
+      const asset = await store.approveSubmission(submissionId, await parseBody(req));
+      jsonResponse(req, res, 200, { asset, submission: await store.getSubmission(submissionId), stats: await store.stats() });
       return;
     }
     const status = action === 'reject' ? 'rejected' : 'request_changes';
-    jsonResponse(req, res, 200, { submission: store.setSubmissionStatus(submissionId, status), stats: store.stats() });
+    jsonResponse(req, res, 200, { submission: await store.setSubmissionStatus(submissionId, status), stats: await store.stats() });
     return;
   }
 
@@ -219,8 +224,12 @@ async function serveStatic(req, res, url) {
 }
 
 export async function createApp(options = {}) {
-  const store = await openStore(options.dbPath || dbPath);
-  const runtimeAdminToken = options.adminToken ?? defaultAdminToken;
+  const store = await openDataSource({
+    dbPath: options.dbPath || dbPath,
+    env: options.env || process.env,
+    feishuClient: options.feishuClient,
+  });
+  const runtimeAdminToken = options.adminToken ?? options.env?.ADMIN_TOKEN ?? defaultAdminToken;
   const server = createServer(async (req, res) => {
     const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
     try {
@@ -242,6 +251,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   server.listen(port, () => {
     console.log(`Ops Codex realtime backend: http://127.0.0.1:${port}`);
     console.log(`Database: ${dbPath}`);
+    console.log(`Data source: ${server.store.dataSource || 'sqlite'}`);
     if (!defaultAdminToken) console.log('ADMIN_TOKEN is not set; approval endpoints are open for local testing.');
   });
 }
