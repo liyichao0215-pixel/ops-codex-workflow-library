@@ -17,7 +17,7 @@ services:
       - key: OPS_DB_PATH
         value: /tmp/ops-assets.sqlite
       - key: DATA_SOURCE
-        value: sqlite
+        value: feishu
       - key: FEISHU_APP_ID
         sync: false
       - key: FEISHU_APP_SECRET

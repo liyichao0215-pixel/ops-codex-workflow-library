@@ -6,8 +6,9 @@ test('render blueprint uses no-card free preview configuration', async () => {
   const blueprint = await readFile('render.yaml', 'utf8');
 
   assert.match(blueprint, /plan:\s*free/);
+  assert.match(blueprint, /buildCommand:\s*DATA_SOURCE=sqlite node --test/);
   assert.match(blueprint, /OPS_DB_PATH[\s\S]*value:\s*\/tmp\/ops-assets\.sqlite/);
-  assert.match(blueprint, /DATA_SOURCE[\s\S]*value:\s*sqlite/);
+  assert.match(blueprint, /DATA_SOURCE[\s\S]*value:\s*feishu/);
   assert.match(blueprint, /FEISHU_APP_ID[\s\S]*sync:\s*false/);
   assert.match(blueprint, /FEISHU_APP_SECRET[\s\S]*sync:\s*false/);
   assert.match(blueprint, /FEISHU_BASE_APP_TOKEN[\s\S]*sync:\s*false/);
