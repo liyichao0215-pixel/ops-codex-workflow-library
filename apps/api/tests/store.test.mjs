@@ -94,7 +94,9 @@ test('store detects similar assets before submission and routes duplicate publis
     assert.equal(store.listAssets().filter((item) => item.title.includes('Flova 前端队列快路径补充')).length, 1);
 
     const forcedNew = store.createSubmission({ ...duplicateDraft, id: 'forced-new-duplicate', duplicateMode: 'new_asset' });
-    assert.throws(() => store.approveSubmission(forcedNew.id, { duplicateMode: 'new_asset' }), /possible duplicate asset/);
+    const newAsset = store.approveSubmission(forcedNew.id, { duplicateMode: 'new_asset' });
+    assert.equal(newAsset.id, 'asset-forced-new-duplicate');
+    assert.equal(store.listAssets().filter((item) => item.title.includes('Flova 前端队列快路径补充')).length, 2);
   } finally {
     store.close();
     await rm(dir, { recursive: true, force: true });

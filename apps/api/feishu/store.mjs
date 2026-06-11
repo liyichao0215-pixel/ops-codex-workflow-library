@@ -428,7 +428,7 @@ export async function openFeishuStore(options = {}) {
       );
       const targetAssetId = cleanText(input.targetAssetId || submission.targetAssetId, 100);
       const duplicateMode = cleanText(input.duplicateMode || submission.duplicateMode, 80);
-      if (duplicateCandidates.length > 0 && duplicateMode !== 'update_existing') {
+      if (duplicateCandidates.length > 0 && !['update_existing', 'new_asset'].includes(duplicateMode)) {
         const error = new Error('possible duplicate asset');
         error.status = 409;
         error.duplicateCandidates = duplicateCandidates;
