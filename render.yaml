@@ -16,3 +16,21 @@ services:
         value: https://ops-codex-workflow-library.onrender.com
       - key: OPS_DB_PATH
         value: /tmp/ops-assets.sqlite
+      - key: DATA_SOURCE
+        value: sqlite
+      - key: FEISHU_APP_ID
+        sync: false
+      - key: FEISHU_APP_SECRET
+        sync: false
+      - key: FEISHU_BASE_APP_TOKEN
+        sync: false
+      - key: FEISHU_ASSETS_TABLE_ID
+        sync: false
+      - key: FEISHU_SUBMISSIONS_TABLE_ID
+        sync: false
+      - key: FEISHU_DUPLICATES_TABLE_ID
+        sync: false
+      - key: FEISHU_AUDIT_TABLE_ID
+        sync: false
+      - key: FEISHU_WIKI_HOME_URL
+        value: https://flova-team.feishu.cn/wiki/F6fewvK1nitUoLkphfRc4xE4n3b
