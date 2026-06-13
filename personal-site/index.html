@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>李忆超 - AI视频流程型运营</title>
+    <meta
+      name="description"
+      content="李忆超，AI视频流程型运营。擅长电商内容运营、AIGC商业视频制作、数据复盘与AI自动化流程搭建。"
+    />
+    <link rel="icon" type="image/png" href="https://meek-meerkat-bef749.netlify.app/assets/favicon.png" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #070b10;
+        --panel: rgba(14, 20, 29, 0.78);
+        --panel-soft: rgba(255, 255, 255, 0.055);
+        --ink: #f4fbff;
+        --muted: #a8b7c7;
+        --line: rgba(255, 255, 255, 0.13);
+        --mint: #72f2df;
+        --green: #8ff3d0;
+        --violet: #b8a7ff;
+        --coral: #ff9a7b;
+        --amber: #ffd286;
+        --radius: 8px;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        letter-spacing: 0;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-width: 320px;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 18% 18%, rgba(114, 242, 223, 0.13), transparent 26%),
+          radial-gradient(circle at 78% 10%, rgba(184, 167, 255, 0.12), transparent 28%),
+          linear-gradient(145deg, #0d1a1d, var(--bg) 42%, #11101a);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 72px 72px;
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), transparent 86%);
+      }
+
+      a { color: inherit; text-decoration: none; }
+      p, h1, h2, h3 { margin: 0; overflow-wrap: anywhere; }
+      .shell { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid var(--line);
+        background: rgba(7, 11, 16, 0.78);
+        backdrop-filter: blur(18px);
+      }
+
+      .nav {
+        min-height: 66px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .brand { display: flex; align-items: center; gap: 10px; font-weight: 850; }
+      .mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        color: #061016;
+        background: linear-gradient(135deg, var(--mint), var(--violet));
+      }
+
+      .nav-links { display: flex; align-items: center; gap: 4px; }
+      .nav-links a {
+        padding: 9px 10px;
+        border-radius: 7px;
+        color: rgba(244, 251, 255, 0.68);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .nav-links a:hover { background: rgba(255,255,255,.08); color: var(--ink); }
+
+      .hero {
+        min-height: calc(100vh - 66px);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 270px;
+        gap: 42px;
+        align-items: center;
+        padding: 58px 0 44px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        border: 1px solid rgba(143, 243, 208, .28);
+        border-radius: 7px;
+        padding: 8px 10px;
+        color: #b8fff0;
+        background: rgba(8, 14, 20, .58);
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 5px rgba(143, 243, 208, .12);
+      }
+
+      h1 {
+        max-width: 820px;
+        margin-top: 18px;
+        font-size: clamp(46px, 7vw, 76px);
+        line-height: .98;
+        font-weight: 920;
+      }
+
+      h1 span {
+        display: block;
+        color: var(--mint);
+      }
+
+      .lead {
+        max-width: 780px;
+        margin-top: 20px;
+        color: rgba(230, 241, 248, .78);
+        font-size: 19px;
+        line-height: 1.72;
+      }
+
+      .proof-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      .card, .proof, .profile, .github-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: 0 24px 70px rgba(0,0,0,.34);
+        backdrop-filter: blur(24px);
+      }
+
+      .proof { min-height: 84px; padding: 14px; }
+      .proof strong { display: block; color: var(--green); font-size: 26px; line-height: 1; }
+      .proof span { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+      .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+      .button {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,.08);
+        color: rgba(244, 251, 255, .92);
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .button.primary {
+        color: #061016;
+        border-color: rgba(143, 243, 208, .5);
+        background: linear-gradient(135deg, rgba(114, 242, 223, .92), rgba(143, 243, 208, .78));
+      }
+
+      .button:hover { transform: translateY(-1px); border-color: rgba(143, 243, 208, .45); }
+
+      .profile { padding: 14px; }
+      .profile img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,.16);
+      }
+
+      .profile h2 { margin-top: 14px; font-size: 20px; }
+      .profile p { margin-top: 8px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+      .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+      .tag {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        border-radius: 6px;
+        padding: 4px 8px;
+        color: #aefbf0;
+        background: rgba(114, 242, 223, .1);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      section { padding: 64px 0; }
+      section:nth-of-type(even) { background: rgba(255,255,255,.025); }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 24px;
+        margin-bottom: 22px;
+      }
+
+      .kicker { color: var(--green); font-size: 13px; font-weight: 900; }
+      h2 { margin-top: 8px; font-size: clamp(28px, 4vw, 40px); line-height: 1.16; }
+      .section-head p { max-width: 440px; color: var(--muted); line-height: 1.75; }
+
+      .metric-grid, .project-grid, .method-grid { display: grid; gap: 14px; }
+      .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .method-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+      .card { padding: 20px; }
+      .card strong { display: block; color: var(--green); font-size: 30px; line-height: 1; }
+      .card h3 { font-size: 22px; line-height: 1.28; }
+      .card p { margin-top: 12px; color: rgba(224, 236, 244, .76); line-height: 1.72; }
+      .meta { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: #8291a4; font-size: 13px; font-weight: 800; }
+      .role { margin-top: 8px; color: var(--green); font-weight: 850; }
+
+      .mini-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+      .mini-tags span {
+        border-radius: 999px;
+        padding: 6px 9px;
+        color: #aefbf0;
+        background: rgba(114, 242, 223, .1);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .method-grid .card { min-height: 178px; }
+      .method-grid strong { color: var(--amber); font-size: 13px; }
+      .method-grid h3 { margin-top: 10px; font-size: 18px; }
+
+      .github-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: center;
+        padding: 24px;
+        background:
+          linear-gradient(135deg, rgba(114, 242, 223, .13), rgba(184, 167, 255, .09)),
+          rgba(8, 12, 18, .72);
+      }
+
+      .github-card h3 { font-size: 26px; }
+      .github-card p { max-width: 780px; margin-top: 10px; color: rgba(224, 236, 244, .78); line-height: 1.76; }
+
+      .tool-list { display: flex; flex-wrap: wrap; gap: 10px; }
+      .tool-list span {
+        min-height: 46px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: var(--panel-soft);
+        color: rgba(244, 251, 255, .9);
+        font-weight: 850;
+      }
+
+      .contact-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 14px; }
+      footer { padding: 44px 0; color: var(--muted); }
+      .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+
+      @media (max-width: 900px) {
+        .nav { align-items: flex-start; flex-direction: column; padding: 14px 0; }
+        .nav-links { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+        .hero, .github-card, .contact-grid { grid-template-columns: 1fr; }
+        .profile { max-width: 360px; }
+        .proof-grid, .metric-grid, .project-grid, .method-grid { grid-template-columns: 1fr; }
+        .section-head { align-items: flex-start; flex-direction: column; }
+        .footer-inner { align-items: flex-start; flex-direction: column; }
+      }
+
+      @media (max-width: 560px) {
+        .shell { width: min(100% - 28px, 1120px); }
+        .hero { padding-top: 42px; }
+        h1 { font-size: 42px; }
+        .lead { font-size: 16px; }
+        section { padding: 48px 0; }
+        .button { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="shell nav" aria-label="主导航">
+        <a class="brand" href="#top" aria-label="回到首页">
+          <span class="mark">李</span>
+          <span>李忆超</span>
+        </a>
+        <div class="nav-links">
+          <a href="#impact">成果</a>
+          <a href="#experience">经历</a>
+          <a href="#method">方法</a>
+          <a href="#github">GitHub</a>
+          <a href="#contact">联系</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <div class="shell hero">
+        <div>
+          <div class="eyebrow">AI视频流程型运营</div>
+          <h1>李忆超 <span>把内容生产推进到可复用流程</span></h1>
+          <p class="lead">
+            做过电商内容运营、AIGC商业视频和数据复盘。擅长把业务流程沉淀成脚本模板、SOP、AI辅助链路和自动化执行系统。
+          </p>
+          <div class="proof-grid" aria-label="核心成果">
+            <div class="proof"><strong>200+</strong><span>品牌广告与剧情视频产出</span></div>
+            <div class="proof"><strong>500w+</strong><span>多平台内容流量累计</span></div>
+            <div class="proof"><strong>+25%</strong><span>品牌方电商投放点击率提升</span></div>
+            <div class="proof"><strong>-40%</strong><span>团队单条视频制作周期缩短</span></div>
+          </div>
+          <div class="actions">
+            <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">查看作品集</a>
+            <a class="button" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">GitHub 仓库</a>
+            <a class="button" href="mailto:3304816001@qq.com">3304816001@qq.com</a>
+          </div>
+        </div>
+
+        <aside class="profile" aria-label="个人摘要">
+          <img src="https://meek-meerkat-bef749.netlify.app/assets/avatar.png" width="512" height="512" alt="李忆超头像" />
+          <h2>本科在读 · 华南农业大学</h2>
+          <p>地理信息科学，2023-2027。国家一等奖学金，计算机二级 Python 证书。</p>
+          <div class="tags">
+            <span class="tag">内容运营</span>
+            <span class="tag">AIGC视频</span>
+            <span class="tag">数据闭环</span>
+            <span class="tag">流程自动化</span>
+          </div>
+        </aside>
+      </div>
+
+      <section id="impact">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Impact</div>
+              <h2>用结果证明流程能力</h2>
+            </div>
+            <p>把内容从“能做出来”推进到“能复盘、能复用、能交付”，这是我在运营和 AI 视频项目里最稳定的增量。</p>
+          </div>
+          <div class="metric-grid">
+            <div class="card"><strong>200+</strong><p>AIGC 带货场景、特效镜头、品牌宣发与剧情视频累计产出。</p></div>
+            <div class="card"><strong>500w+</strong><p>4 月多平台累计流量，覆盖品牌方电商渠道投放。</p></div>
+            <div class="card"><strong>10条/天</strong><p>剪辑效率优化后的稳定产能。</p></div>
+            <div class="card"><strong>+45%</strong><p>公域引流效率提升。</p></div>
+            <div class="card"><strong>+35%</strong><p>私域转化精准度提升。</p></div>
+            <div class="card"><strong>ROI 2-3</strong><p>带货账号投流放大后稳定区间。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="experience">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Experience</div>
+              <h2>代表经历与项目</h2>
+            </div>
+            <p>每段经历都围绕同一个核心：理解业务目标，拆解内容流程，交付可复用的方法和结果。</p>
+          </div>
+          <div class="project-grid">
+            <article class="card">
+              <div class="meta"><span>粤明传媒</span><span>2026.02 至今</span></div>
+              <h3>AIGC商业视频制作 & 电商内容运营</h3>
+              <div class="role">实习生</div>
+              <p>服务 OPPO、vivo、大疆、比亚迪等品牌电商广告项目，完成卖点拆解、带货脚本、AI 场景与特效镜头制作，协助搭建从需求沟通到后期优化的标准化交付流程。</p>
+              <div class="mini-tags"><span>200+ 视频</span><span>500w+ 流量</span><span>点击率 +25%</span><span>周期 -40%</span></div>
+            </article>
+
+            <article class="card">
+              <div class="meta"><span>上海高顿教育广州分公司</span><span>2025.04-2025.10</span></div>
+              <h3>新媒体内容运营 & 电商转化</h3>
+              <div class="role">实习生</div>
+              <p>主导小红书账号与电商内容全链路运营，搭建“公域内容引流-私域承接-商业转化”链路，独立完成脚本、视频、数据复盘与内容卡点优化。</p>
+              <div class="mini-tags"><span>60+ 引流内容</span><span>1800+ 私域沉淀</span><span>个人 GMV 30w</span><span>团队 GMV 70w+</span></div>
+            </article>
+
+            <article class="card">
+              <div class="meta"><span>纳鲨之星植保工厂</span><span>2025.10-2026.01</span></div>
+              <h3>电商带货内容全链路运营</h3>
+              <div class="role">全链路运营负责人</div>
+              <p>负责抖音农资品类电商带货账号从 0 到 1 运营，搭建合规内容体系、复用带货模板和素材库机制，跑通内容生产、投流放大、数据优化、带货成交闭环。</p>
+              <div class="mini-tags"><span>120+ 带货视频</span><span>3 套模板</span><span>GMV 10w+</span><span>剪辑 10条/天</span></div>
+            </article>
+
+            <article class="card">
+              <div class="meta"><span>工业视觉 AI 产品项目</span><span>2025.12-2026.02</span></div>
+              <h3>AI产品教程视频与获客渠道</h3>
+              <div class="role">渠道负责人助理</div>
+              <p>运用剪映、即梦 AI 制作工业视觉检测 AI 产品教程视频，统一产品宣发内容标准，通过抖音、小红书、闲鱼多渠道投放辅助构建获客体系。</p>
+              <div class="mini-tags"><span>教程视频</span><span>ToB 获客</span><span>多渠道投放</span><span>内容标准化</span></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="method">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Method</div>
+              <h2>我的工作方式</h2>
+            </div>
+            <p>我不是只把工具用起来，而是把工具接入流程：先理解人怎么做，再判断哪里适合 AI 辅助，哪里可以自动化。</p>
+          </div>
+          <div class="method-grid">
+            <div class="card"><strong>01</strong><h3>需求拆解</h3><p>判断目标、人群、渠道、转化动作，把模糊任务拆成可执行清单。</p></div>
+            <div class="card"><strong>02</strong><h3>脚本模板</h3><p>沉淀标题、卖点、钩子、节奏和分镜模板，减少重复试错。</p></div>
+            <div class="card"><strong>03</strong><h3>AI生成</h3><p>用 Sora、Veo、即梦、可灵等工具生成场景、镜头和视觉素材。</p></div>
+            <div class="card"><strong>04</strong><h3>剪辑优化</h3><p>用剪映、PR 完成节奏、字幕、镜头衔接和转化信息强化。</p></div>
+            <div class="card"><strong>05</strong><h3>数据复盘</h3><p>跟踪流量、点击、转化、私域承接和反馈，找到内容缺口。</p></div>
+            <div class="card"><strong>06</strong><h3>SOP / 自动化</h3><p>把有效动作变成字段、脚本、检查清单和可复用自动化流程。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="github">
+        <div class="shell">
+          <div class="github-card">
+            <div>
+              <div class="kicker">GitHub Project</div>
+              <h3>运营 Codex 工作流资产库</h3>
+              <p>
+                这是我把运营经验产品化、流程化、系统化的公开证明。仓库包含静态前端、Node + SQLite 后端、投稿审核、飞书/SQLite 数据源、部署配置、测试脚本和可复用 Codex skills。
+              </p>
+            </div>
+            <a class="button primary" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">查看仓库</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="tools">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Tool Stack</div>
+              <h2>工具栈与优势</h2>
+            </div>
+            <p>工具覆盖视频生成、剪辑交付、数据分析和自动化流程搭建，重点是组合使用，而不是单点炫技。</p>
+          </div>
+          <div class="tool-list">
+            <span>Sora</span><span>Gemini</span><span>Veo</span><span>即梦 AI</span><span>可灵</span><span>GPT</span><span>Codex</span><span>剪映</span><span>Premiere Pro</span><span>Python</span><span>数据复盘</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact">
+        <div class="shell contact-grid">
+          <div class="card">
+            <div class="kicker">Contact</div>
+            <h2>联系与作品</h2>
+            <p>男，21 岁。华南农业大学本科在读，地理信息科学专业。</p>
+          </div>
+          <div class="card">
+            <h3>进一步了解</h3>
+            <div class="actions">
+              <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">查看作品集</a>
+              <a class="button" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">GitHub 仓库</a>
+              <a class="button" href="tel:18776006994">18776006994</a>
+              <a class="button" href="mailto:3304816001@qq.com">3304816001@qq.com</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="shell footer-inner">
+        <p><strong>李忆超</strong> · AI视频流程型运营 · 内容生产到 AI 自动化流程</p>
+        <a class="button" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </body>
+</html>
