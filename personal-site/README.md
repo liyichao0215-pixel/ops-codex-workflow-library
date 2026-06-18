@@ -6,7 +6,8 @@
 
 - 版本：v2 portfolio
 - 日期：2026-06-18
-- 线上参考：https://meek-meerkat-bef749.netlify.app/
+- 公开主页：https://liyichao0215-pixel.github.io/
+- 旧 Netlify 地址：https://meek-meerkat-bef749.netlify.app/
 - 联系邮箱：3304816001@qq.com
 - 重点仓库：https://github.com/liyichao0215-pixel/ops-codex-workflow-library
 - Netlify 发布目录：`personal-site`
@@ -30,7 +31,7 @@ resumes/         面向不同招聘场景的投递版材料
 
 1. 面向深圳 AI 岗位 HR 的首屏定位和数字证据。
 2. 四个可面试项目案例：AI 视频生产链路、运营 Codex 工作流资产库、AIGC 商业视频提效、三平台发布包系统。
-3. GitHub 公开证明：个人主页、重点仓库、备用 GitHub Pages 仓库说明。
+3. GitHub 公开证明：个人主页、重点仓库、GitHub Pages 公开主页。
 4. 开源项目的透明业务落地方案：Postiz、n8n、RAGFlow、PostHog、Resume Matcher。
 5. 岗位匹配材料入口：AIGC 产品运营、AIGC 内容增长、AI 商业化增长、海外社媒/跨境 AI 硬件。
 
