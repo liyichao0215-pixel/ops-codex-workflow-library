@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>李忆超 - AI视频流程型运营作品集</title>
+    <meta
+      name="description"
+      content="李忆超，AI视频流程型运营 / AIGC产品运营候选人 / AI内容增长候选人。展示AIGC视频生产、AI工作流搭建、商业化结果、GitHub项目、求职意向和开源落地建议。"
+    />
+    <link rel="icon" type="image/png" href="https://meek-meerkat-bef749.netlify.app/assets/favicon.png" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #070b10;
+        --surface: rgba(13, 18, 27, 0.86);
+        --surface-soft: rgba(255, 255, 255, 0.055);
+        --ink: #f4fbff;
+        --muted: #a9b7c7;
+        --quiet: #8190a3;
+        --line: rgba(255, 255, 255, 0.13);
+        --mint: #72f2df;
+        --green: #8ff3d0;
+        --violet: #b8a7ff;
+        --coral: #ff9a7b;
+        --amber: #ffd286;
+        --blue: #94c5ff;
+        --radius: 8px;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        letter-spacing: 0;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-width: 320px;
+        color: var(--ink);
+        background:
+          linear-gradient(145deg, rgba(9, 22, 24, 0.96), rgba(7, 11, 16, 0.98) 42%, rgba(17, 16, 26, 0.98)),
+          linear-gradient(90deg, rgba(114, 242, 223, 0.08), rgba(184, 167, 255, 0.06), rgba(255, 154, 123, 0.05));
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.048) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: 72px 72px;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.72), transparent 86%);
+        pointer-events: none;
+      }
+
+      a { color: inherit; text-decoration: none; }
+      p, h1, h2, h3 { margin: 0; overflow-wrap: anywhere; }
+      .shell { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid var(--line);
+        background: rgba(7, 11, 16, 0.82);
+        backdrop-filter: blur(18px);
+      }
+
+      .nav {
+        min-height: 66px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .brand { display: flex; align-items: center; gap: 10px; font-weight: 850; }
+      .mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        color: #061016;
+        background: linear-gradient(135deg, var(--mint), var(--violet));
+      }
+
+      .nav-links { display: flex; align-items: center; gap: 4px; }
+      .nav-links a {
+        padding: 9px 10px;
+        border-radius: 7px;
+        color: rgba(244, 251, 255, 0.68);
+        font-size: 14px;
+        font-weight: 760;
+        white-space: nowrap;
+      }
+
+      .nav-links a:hover { background: rgba(255, 255, 255, 0.08); color: var(--ink); }
+
+      .nav-links a.nav-portfolio {
+        color: #061016;
+        border: 1px solid rgba(143, 243, 208, 0.5);
+        background: linear-gradient(135deg, rgba(114, 242, 223, 0.94), rgba(255, 210, 134, 0.82));
+      }
+
+      .hero {
+        min-height: calc(100vh - 66px);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 292px;
+        gap: 42px;
+        align-items: center;
+        padding: 58px 0 44px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        border: 1px solid rgba(143, 243, 208, 0.28);
+        border-radius: 7px;
+        padding: 8px 10px;
+        color: #b8fff0;
+        background: rgba(8, 14, 20, 0.58);
+        font-size: 14px;
+        font-weight: 850;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 5px rgba(143, 243, 208, 0.12);
+      }
+
+      h1 {
+        max-width: 850px;
+        margin-top: 18px;
+        font-size: clamp(42px, 6vw, 72px);
+        line-height: 1.02;
+        font-weight: 920;
+      }
+
+      h1 span {
+        display: block;
+        color: var(--mint);
+      }
+
+      .lead {
+        max-width: 820px;
+        margin-top: 20px;
+        color: rgba(230, 241, 248, 0.8);
+        font-size: 18px;
+        line-height: 1.76;
+      }
+
+      .focus-line {
+        max-width: 760px;
+        margin-top: 14px;
+        border-left: 3px solid var(--mint);
+        padding-left: 14px;
+        color: rgba(244, 251, 255, 0.88);
+        font-size: 15px;
+        font-weight: 780;
+        line-height: 1.7;
+      }
+
+      .proof-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      .card, .proof, .profile, .proof-card, .repo-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+        backdrop-filter: blur(24px);
+      }
+
+      .proof { min-height: 90px; padding: 14px; }
+      .proof strong { display: block; color: var(--green); font-size: 25px; line-height: 1; }
+      .proof span { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+      .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+      .button {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(244, 251, 255, 0.92);
+        font-size: 14px;
+        font-weight: 850;
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+      }
+
+      .button.primary {
+        color: #061016;
+        border-color: rgba(143, 243, 208, 0.5);
+        background: linear-gradient(135deg, rgba(114, 242, 223, 0.92), rgba(143, 243, 208, 0.78));
+      }
+
+      .button.primary.priority {
+        min-height: 48px;
+        padding: 12px 18px;
+        box-shadow: 0 14px 34px rgba(114, 242, 223, 0.16);
+      }
+
+      .button:hover { transform: translateY(-1px); border-color: rgba(143, 243, 208, 0.45); }
+
+      .profile { padding: 14px; }
+      .profile img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+      }
+
+      .profile h2 { margin-top: 14px; font-size: 20px; }
+      .profile p { margin-top: 8px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+      .profile .profile-note {
+        border: 1px solid rgba(255, 210, 134, 0.25);
+        border-radius: 8px;
+        margin-top: 14px;
+        padding: 11px 12px;
+        color: rgba(255, 236, 198, 0.9);
+        background: rgba(255, 210, 134, 0.07);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .tags, .mini-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+      .tag, .mini-tags span, .status {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        border-radius: 999px;
+        padding: 5px 9px;
+        color: #aefbf0;
+        background: rgba(114, 242, 223, 0.1);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .status.done { color: #c9ffe9; background: rgba(143, 243, 208, 0.13); }
+      .status.proto { color: #ffe3a9; background: rgba(255, 210, 134, 0.13); }
+      .status.ref { color: #d9d2ff; background: rgba(184, 167, 255, 0.13); }
+
+      section {
+        padding: 64px 0;
+        scroll-margin-top: 96px;
+      }
+      section:nth-of-type(even) { background: rgba(255, 255, 255, 0.025); }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 24px;
+        margin-bottom: 22px;
+      }
+
+      .kicker { color: var(--green); font-size: 13px; font-weight: 920; text-transform: uppercase; }
+      h2 { margin-top: 8px; font-size: clamp(28px, 4vw, 40px); line-height: 1.16; }
+      .section-head p { max-width: 500px; color: var(--muted); line-height: 1.75; }
+
+      .metric-grid, .case-grid, .open-grid, .intent-grid, .method-grid { display: grid; gap: 14px; }
+      .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .case-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .open-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .intent-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .method-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+      .card { padding: 20px; }
+      .card strong { display: block; color: var(--green); font-size: 30px; line-height: 1; }
+      .card h3 { font-size: 22px; line-height: 1.28; }
+      .card p { margin-top: 12px; color: rgba(224, 236, 244, 0.78); line-height: 1.72; }
+      .card ul { margin: 14px 0 0; padding-left: 18px; color: rgba(224, 236, 244, 0.78); line-height: 1.72; }
+      .card li + li { margin-top: 4px; }
+
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        color: #8291a4;
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .role { margin-top: 8px; color: var(--green); font-weight: 850; }
+      .case-card { min-height: 390px; display: flex; flex-direction: column; }
+      .case-card .actions { margin-top: auto; padding-top: 18px; }
+      .case-proof {
+        margin-top: 14px;
+        border: 1px solid rgba(114, 242, 223, 0.22);
+        border-radius: 8px;
+        padding: 12px;
+        color: rgba(184, 255, 240, 0.92);
+        background: rgba(114, 242, 223, 0.075);
+        font-size: 14px;
+        line-height: 1.58;
+      }
+
+      .proof-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: center;
+        padding: 24px;
+        background:
+          linear-gradient(135deg, rgba(114, 242, 223, 0.13), rgba(184, 167, 255, 0.09)),
+          rgba(8, 12, 18, 0.72);
+      }
+
+      .proof-card h3 { font-size: 26px; line-height: 1.24; }
+      .proof-card p { max-width: 820px; margin-top: 10px; color: rgba(224, 236, 244, 0.8); line-height: 1.76; }
+      .repo-list { display: grid; gap: 12px; margin-top: 18px; }
+
+      .repo-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        align-items: center;
+        padding: 18px;
+      }
+
+      .repo-card h3 { font-size: 20px; }
+      .repo-card p { margin-top: 6px; color: rgba(224, 236, 244, 0.76); line-height: 1.62; }
+
+      .open-card { min-height: 330px; display: flex; flex-direction: column; }
+      .open-card .actions { margin-top: auto; padding-top: 16px; }
+      .source-note {
+        margin-top: 18px;
+        border: 1px solid rgba(255, 210, 134, 0.26);
+        border-radius: 8px;
+        padding: 14px 16px;
+        color: rgba(255, 236, 198, 0.88);
+        background: rgba(255, 210, 134, 0.07);
+        line-height: 1.68;
+      }
+
+      .intent-card {
+        min-height: 360px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .intent-role {
+        width: fit-content;
+        border: 1px solid rgba(148, 197, 255, 0.28);
+        border-radius: 999px;
+        padding: 5px 9px;
+        color: #cbe0ff;
+        background: rgba(148, 197, 255, 0.08);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .intent-block strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--green);
+        font-size: 13px;
+      }
+
+      .intent-block p {
+        margin: 0;
+        color: rgba(219, 231, 240, 0.82);
+        font-size: 14px;
+        line-height: 1.72;
+      }
+
+      .project-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .project-links a {
+        min-height: 30px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 999px;
+        padding: 5px 9px;
+        color: rgba(244, 251, 255, 0.88);
+        background: rgba(255, 255, 255, 0.07);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .project-links a:hover { border-color: rgba(143, 243, 208, 0.42); color: var(--ink); }
+
+      .method-grid .card { min-height: 178px; }
+      .method-grid strong { color: var(--amber); font-size: 13px; }
+      .method-grid h3 { margin-top: 10px; font-size: 18px; }
+      .method-grid .card {
+        transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+      .method-grid .card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(114, 242, 223, 0.38);
+        background: rgba(18, 26, 38, 0.9);
+      }
+
+      .tool-list { display: flex; flex-wrap: wrap; gap: 10px; }
+      .tool-list span {
+        min-height: 46px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: var(--surface-soft);
+        color: rgba(244, 251, 255, 0.9);
+        font-weight: 850;
+      }
+
+      .contact-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 14px; }
+      footer { padding: 44px 0; color: var(--muted); }
+      .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+
+      @media (max-width: 1100px) {
+        .proof-grid, .open-grid, .intent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .method-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 900px) {
+        .nav { align-items: flex-start; flex-direction: column; padding: 14px 0; }
+        .nav-links { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+        .hero, .proof-card, .repo-card, .contact-grid { grid-template-columns: 1fr; }
+        .profile { max-width: 360px; }
+        .metric-grid, .case-grid { grid-template-columns: 1fr; }
+        .section-head { align-items: flex-start; flex-direction: column; }
+        .footer-inner { align-items: flex-start; flex-direction: column; }
+      }
+
+      @media (max-width: 560px) {
+        .shell { width: min(100% - 28px, 1120px); }
+        .hero { padding-top: 42px; }
+        .nav { gap: 12px; }
+        .nav-links {
+          flex-wrap: wrap;
+          gap: 6px;
+          overflow-x: visible;
+        }
+        .nav-links a {
+          padding: 7px 8px;
+          font-size: 13px;
+        }
+        h1 { font-size: 38px; }
+        .lead { font-size: 16px; }
+        section {
+          padding: 48px 0;
+          scroll-margin-top: 132px;
+        }
+        .proof-grid, .open-grid, .intent-grid, .method-grid { grid-template-columns: 1fr; }
+        .button { width: 100%; }
+        .meta { flex-direction: column; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="shell nav" aria-label="主导航">
+        <a class="brand" href="#top" aria-label="回到首页">
+          <span class="mark">李</span>
+          <span>李忆超</span>
+        </a>
+        <div class="nav-links">
+          <a href="#top">首页</a>
+          <a href="#cases">项目案例</a>
+          <a href="#github">GitHub</a>
+          <a href="#opensource">开源落地方案</a>
+          <a href="#intentions">求职意向</a>
+          <a class="nav-portfolio" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">作品集</a>
+          <a href="#contact">联系</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <div class="shell hero">
+        <div>
+          <div class="eyebrow">AI视频流程型运营 / AIGC产品运营候选人 / AI内容增长候选人</div>
+          <h1>李忆超 <span>把 AI 内容生产做成可增长的业务系统</span></h1>
+          <p class="lead">
+            面向深圳 AI 产品运营、AIGC 内容增长和 AI 商业化岗位。我的核心能力是把选题、脚本、AIGC 生成、素材复核、发布包和数据复盘连接成可复用流程。
+          </p>
+          <p class="focus-line">如果只看一个入口，建议先打开飞书作品集；如果继续判断匹配度，再看项目案例和我的工作方式。</p>
+          <div class="actions">
+            <a class="button primary priority" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">打开飞书作品集</a>
+            <a class="button" href="#cases">4 个项目案例</a>
+            <a class="button" href="#method">我的工作方式</a>
+            <a class="button" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">GitHub Profile</a>
+          </div>
+          <div class="proof-grid" aria-label="核心成果">
+            <div class="proof"><strong>200+</strong><span>AIGC 视频/素材相关产出</span></div>
+            <div class="proof"><strong>500w+</strong><span>多平台内容流量累计</span></div>
+            <div class="proof"><strong>+25%</strong><span>品牌电商投放点击率提升</span></div>
+            <div class="proof"><strong>-40%</strong><span>视频制作周期缩短</span></div>
+            <div class="proof"><strong>GMV/ROI</strong><span>个人 GMV 30w，投流 ROI 2-3</span></div>
+          </div>
+        </div>
+
+        <aside class="profile" aria-label="个人摘要">
+          <img src="./assets/personal-avatar-ai-workflow.png" width="512" height="512" alt="李忆超 AI 工作流产品运营虚拟形象" />
+          <h2>本科在读 · 华南农业大学</h2>
+          <p>地理信息科学，2023-2027。目标岗位：AIGC 产品运营、AI 内容增长、AI 商业化运营、海外社媒运营。</p>
+          <div class="tags">
+            <span class="tag">AIGC视频</span>
+            <span class="tag">产品运营</span>
+            <span class="tag">增长复盘</span>
+            <span class="tag">GitHub项目</span>
+            <span class="tag">流程自动化</span>
+          </div>
+          <p class="profile-note">快速判断路径：先看飞书作品集，再看四个可面试项目，最后用 GitHub 仓库验证公开产物。</p>
+        </aside>
+      </div>
+
+      <section id="cases">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Portfolio Cases</div>
+              <h2>四个可面试项目案例</h2>
+            </div>
+            <p>每个案例都按 HR 和业务面试官关心的方式组织：业务目标、我的动作、可验证产物和结果。</p>
+          </div>
+          <div class="case-grid">
+            <article class="card case-card">
+              <div class="meta"><span>AI 视频生产链路</span><span>已落地</span></div>
+              <h3>矩阵号 AI 视频生产从选题到发布准备</h3>
+              <p>把 Feishu 配置、账号定位、热点池、Flova 项目、Prompt、素材状态、人工复核和发布包连接起来，形成三段门禁。</p>
+              <ul>
+                <li>Queue gate：确认任务、账号和素材包。</li>
+                <li>Eligibility gate：判断账号定位、热点匹配和执行边界。</li>
+                <li>Flova gate：进入项目、粘贴提示词、保留人工确认。</li>
+              </ul>
+              <p class="case-proof">强证明：能把 AI 视频生产拆成可执行流程，而不是只会写提示词或单条视频。</p>
+              <div class="mini-tags"><span>Feishu</span><span>Flova</span><span>Prompt</span><span>发布包字段</span></div>
+              <div class="actions">
+                <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">看作品集证据</a>
+              </div>
+            </article>
+
+            <article class="card case-card">
+              <div class="meta"><span>公开 GitHub 项目</span><span>已落地</span></div>
+              <h3>运营 Codex 工作流资产库</h3>
+              <p>把运营团队的 Codex 工作流沉淀成可复用资产库，包含静态前端、Node + SQLite 后端、投稿审核、部署配置、测试脚本和 skills。</p>
+              <ul>
+                <li>前端支持资产检索、详情查看、投稿和审核准备。</li>
+                <li>后端支持 SQLite / 飞书数据源适配。</li>
+                <li>仓库包含测试、部署说明和 M1 内测清单。</li>
+              </ul>
+              <p class="case-proof">强证明：能把运营经验产品化、文档化，并做成可公开验证的工作流资产。</p>
+              <div class="actions">
+                <a class="button primary" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">查看仓库</a>
+              </div>
+            </article>
+
+            <article class="card case-card">
+              <div class="meta"><span>AIGC 商业视频提效</span><span>已落地</span></div>
+              <h3>品牌卖点到 AI 场景和短视频交付</h3>
+              <p>服务 OPPO、vivo、大疆、比亚迪等品牌电商广告项目，参与卖点拆解、带货脚本、AI 场景生成、特效镜头和后期优化。</p>
+              <ul>
+                <li>参与 200+ AIGC 视频/素材相关产出。</li>
+                <li>相关内容多平台累计流量 500w+。</li>
+                <li>点击率提升约 25%，制作周期缩短约 40%。</li>
+              </ul>
+              <p class="case-proof">强证明：能把 AIGC 生产效率和商业指标连接起来，服务点击、转化和投放复盘。</p>
+              <div class="mini-tags"><span>Gemini</span><span>即梦 AI</span><span>可灵</span><span>Sora</span></div>
+              <div class="actions">
+                <a class="button" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">看作品集证据</a>
+              </div>
+            </article>
+
+            <article class="card case-card">
+              <div class="meta"><span>三平台发布包系统</span><span>原型中</span></div>
+              <h3>TikTok / X / YouTube 发布字段和状态回填</h3>
+              <p>把海外社媒发布拆成统一发布包，降低跨平台发布时的字段遗漏和状态误判。</p>
+              <ul>
+                <li>字段包含 title、caption、hashtags、cover、schedule。</li>
+                <li>保留 AI disclosure、human confirmation、status writeback。</li>
+                <li>适合连接 Postiz pilot、TikTok Studio SOP 和本地控制台。</li>
+              </ul>
+              <p class="case-proof">强证明：能把海外发布从临场执行变成结构化发布包，减少遗漏和状态误判。</p>
+              <div class="mini-tags"><span>TikTok</span><span>X</span><span>YouTube</span><span>AI disclosure</span></div>
+              <div class="actions">
+                <a class="button" href="#intentions">看岗位匹配</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="github">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Public Proof</div>
+              <h2>GitHub 公开证明</h2>
+            </div>
+            <p>这里展示的是可被 HR 或面试官打开验证的公开资产：主页、源码、部署仓库和可面试项目。</p>
+          </div>
+          <div class="proof-card">
+            <div>
+              <h3>从运营经验到可复用工作流资产</h3>
+              <p>
+                `ops-codex-workflow-library` 是我把运营流程、Codex skills、投稿审核、数据源适配和部署验收系统化的公开仓库。它更接近 AI 产品运营和内部工具产品，而不是单纯内容展示页。
+              </p>
+            </div>
+            <a class="button primary" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">打开 GitHub Profile</a>
+          </div>
+          <div class="repo-list">
+            <article class="repo-card">
+              <div>
+                <h3>ops-codex-workflow-library</h3>
+                <p>运营 Codex 工作流资产库。包含静态前端、Node + SQLite 后端、飞书/SQLite 数据源、审核流程、测试和部署说明。</p>
+              </div>
+              <a class="button" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">查看仓库</a>
+            </article>
+            <article class="repo-card">
+              <div>
+                <h3>liyichao0215-pixel.github.io</h3>
+                <p>当前可分享的 GitHub Pages 作品集主页，用于投递、面试和社媒资料页快速打开。</p>
+              </div>
+              <a class="button" href="https://liyichao0215-pixel.github.io/" target="_blank" rel="noreferrer">打开公开主页</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="opensource">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Open Source to Business</div>
+              <h2>开源项目的业务落地方案</h2>
+            </div>
+            <p>以下项目不是我原创开发的开源项目，而是我用于构建业务方案、产品理解和项目表达的参考对象。</p>
+          </div>
+          <div class="open-grid">
+            <article class="card open-card">
+              <span class="status proto">原型中</span>
+              <h3>Postiz - 跨平台内容排期</h3>
+              <p>借鉴 Postiz 的社媒排期思路，设计 TikTok / X / YouTube 发布包字段和人工确认边界。</p>
+              <div class="mini-tags"><span>发布包</span><span>排期</span><span>状态回填</span></div>
+              <div class="actions"><a class="button" href="https://github.com/gitroomhq/postiz-app" target="_blank" rel="noreferrer">开源参考</a></div>
+            </article>
+
+            <article class="card open-card">
+              <span class="status proto">原型中</span>
+              <h3>n8n - 运营自动化编排</h3>
+              <p>借鉴 n8n 的工作流编排方式，映射 Feishu、Obsidian、Flova、发布状态和数据回收。</p>
+              <div class="mini-tags"><span>Feishu</span><span>Obsidian</span><span>Flova</span></div>
+              <div class="actions"><a class="button" href="https://github.com/n8n-io/n8n" target="_blank" rel="noreferrer">开源参考</a></div>
+            </article>
+
+            <article class="card open-card">
+              <span class="status ref">参考方案</span>
+              <h3>RAGFlow - 项目知识库检索</h3>
+              <p>用于构思账号表达记忆、SOP、成功案例和失败素材原因的知识库检索方案。</p>
+              <div class="mini-tags"><span>RAG</span><span>SOP</span><span>账号记忆</span></div>
+              <div class="actions"><a class="button" href="https://github.com/infiniflow/ragflow" target="_blank" rel="noreferrer">开源参考</a></div>
+            </article>
+
+            <article class="card open-card">
+              <span class="status ref">参考方案</span>
+              <h3>PostHog - 内容增长看板</h3>
+              <p>借鉴产品分析工具的事件和漏斗思路，设计播放、点击、转化、留存和 ROI 复盘看板。</p>
+              <div class="mini-tags"><span>漏斗</span><span>转化</span><span>留存</span></div>
+              <div class="actions"><a class="button" href="https://github.com/PostHog/posthog" target="_blank" rel="noreferrer">开源参考</a></div>
+            </article>
+
+            <article class="card open-card">
+              <span class="status done">已落地</span>
+              <h3>Resume Matcher - JD 关键词匹配</h3>
+              <p>借鉴简历与 JD 匹配思路，已用于四类岗位简历优化：产品运营、内容增长、商业化和海外社媒。</p>
+              <div class="mini-tags"><span>ATS</span><span>JD匹配</span><span>简历优化</span></div>
+              <div class="actions"><a class="button" href="https://github.com/srbhr/Resume-Matcher" target="_blank" rel="noreferrer">开源参考</a></div>
+            </article>
+          </div>
+          <p class="source-note">
+            透明说明：以上开源项目用于说明我的产品理解和业务适配方向。除个人仓库 `ops-codex-workflow-library` 外，不声称我是这些开源项目的作者。
+          </p>
+        </div>
+      </section>
+
+      <section id="method">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Method</div>
+              <h2>我的工作方式</h2>
+            </div>
+            <p>我不是只把工具用起来，而是把工具接入流程：先理解业务怎么跑，再判断哪里适合 AI 辅助，哪里可以自动化。</p>
+          </div>
+          <div class="method-grid">
+            <div class="card"><strong>01</strong><h3>理解业务怎么跑</h3><p>先看目标、人群、渠道、转化动作和交付标准，不急着套 AI 工具。</p></div>
+            <div class="card"><strong>02</strong><h3>拆成流程字段</h3><p>把任务拆成选题、脚本、素材、复核、发布包和状态回填这些可执行节点。</p></div>
+            <div class="card"><strong>03</strong><h3>判断 AI 辅助点</h3><p>区分哪里适合用 AI 生成、改写、检索、分类，哪里必须保留人工判断。</p></div>
+            <div class="card"><strong>04</strong><h3>接入工具执行</h3><p>用 Sora、Veo、Flova、Codex、RAG 或自动化工具完成对应环节，而不是单点炫技。</p></div>
+            <div class="card"><strong>05</strong><h3>设置确认边界</h3><p>把质量、合规、品牌调性、AI disclosure 和发布前确认放进检查清单。</p></div>
+            <div class="card"><strong>06</strong><h3>复盘并自动化</h3><p>根据数据和人工反馈，把有效动作沉淀成 SOP、字段模板和可复用流程。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="intentions">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Career Intentions</div>
+              <h2>求职意向与开源落地建议</h2>
+            </div>
+            <p>我希望做的不是单点剪辑或普通运营，而是把 AI 内容、数据、自动化和开源工具组合成能跑起来的业务流程。</p>
+          </div>
+          <div class="intent-grid">
+            <article class="card intent-card">
+              <span class="intent-role">优先方向</span>
+              <h3>AIGC 产品运营 / AI 工作流运营</h3>
+              <div class="intent-block">
+                <strong>我能做什么</strong>
+                <p>把业务需求拆成流程、字段、Prompt、SOP 和验收标准，推动 AI 工具从试用变成可复用的内部产品。</p>
+              </div>
+              <div class="intent-block">
+                <strong>适配 GitHub 项目</strong>
+                <div class="project-links">
+                  <a href="https://github.com/langgenius/dify" target="_blank" rel="noreferrer">Dify</a>
+                  <a href="https://github.com/FlowiseAI/Flowise" target="_blank" rel="noreferrer">Flowise</a>
+                  <a href="https://github.com/infiniflow/ragflow" target="_blank" rel="noreferrer">RAGFlow</a>
+                </div>
+              </div>
+              <div class="intent-block">
+                <strong>落地建议</strong>
+                <p>做一个“账号知识库 + 脚本生成 + 素材质检”的轻量 AI 工作台，用真实项目 SOP 验证可用性。</p>
+              </div>
+            </article>
+
+            <article class="card intent-card">
+              <span class="intent-role">核心优势</span>
+              <h3>AIGC 内容增长 / AI 视频运营</h3>
+              <div class="intent-block">
+                <strong>我能做什么</strong>
+                <p>建立热点池、脚本模板、AI 视频素材生产、发布包和复盘表，让内容团队持续产出并知道为什么有效。</p>
+              </div>
+              <div class="intent-block">
+                <strong>适配 GitHub 项目</strong>
+                <div class="project-links">
+                  <a href="https://github.com/DIYgod/RSSHub" target="_blank" rel="noreferrer">RSSHub</a>
+                  <a href="https://github.com/gitroomhq/postiz-app" target="_blank" rel="noreferrer">Postiz</a>
+                  <a href="https://github.com/posthog/posthog" target="_blank" rel="noreferrer">PostHog</a>
+                </div>
+              </div>
+              <div class="intent-block">
+                <strong>落地建议</strong>
+                <p>跑一个 30 天内容增长实验：热点来源、AIGC 生产、发布时间、点击和转化统一回填。</p>
+              </div>
+            </article>
+
+            <article class="card intent-card">
+              <span class="intent-role">高薪匹配</span>
+              <h3>AI 商业化 / 增长运营</h3>
+              <div class="intent-block">
+                <strong>我能做什么</strong>
+                <p>围绕 GMV、ROI、线索承接和内容转化搭建复盘口径，把“内容好不好”转成可追踪的增长指标。</p>
+              </div>
+              <div class="intent-block">
+                <strong>适配 GitHub 项目</strong>
+                <div class="project-links">
+                  <a href="https://github.com/posthog/posthog" target="_blank" rel="noreferrer">PostHog</a>
+                  <a href="https://github.com/growthbook/growthbook" target="_blank" rel="noreferrer">GrowthBook</a>
+                  <a href="https://github.com/metabase/metabase" target="_blank" rel="noreferrer">Metabase</a>
+                </div>
+              </div>
+              <div class="intent-block">
+                <strong>落地建议</strong>
+                <p>从投放素材、落地页点击、私域承接到成交做一张增长漏斗，沉淀可复制的商业化素材打法。</p>
+              </div>
+            </article>
+
+            <article class="card intent-card">
+              <span class="intent-role">出海方向</span>
+              <h3>海外社媒 / 跨境 AI 硬件运营</h3>
+              <div class="intent-block">
+                <strong>我能做什么</strong>
+                <p>把 AI 硬件或消费电子卖点翻译成 TikTok / X / YouTube 的内容栏目、发布字段和人工确认边界。</p>
+              </div>
+              <div class="intent-block">
+                <strong>适配 GitHub 项目</strong>
+                <div class="project-links">
+                  <a href="https://github.com/gitroomhq/postiz-app" target="_blank" rel="noreferrer">Postiz</a>
+                  <a href="https://github.com/n8n-io/n8n" target="_blank" rel="noreferrer">n8n</a>
+                  <a href="https://github.com/remotion-dev/remotion" target="_blank" rel="noreferrer">Remotion</a>
+                </div>
+              </div>
+              <div class="intent-block">
+                <strong>落地建议</strong>
+                <p>先做“AI 硬件 10 条海外短视频发布包”，验证标题、封面、AI disclosure 和多平台排期流程。</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="tools">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Tool Stack</div>
+              <h2>工具栈与关键词</h2>
+            </div>
+            <p>工具覆盖视频生成、剪辑交付、数据分析和自动化流程搭建，重点是组合使用，而不是单点炫技。</p>
+          </div>
+          <div class="tool-list">
+            <span>Sora</span><span>Gemini</span><span>Veo</span><span>即梦 AI</span><span>可灵</span><span>Flova</span><span>GPT</span><span>Codex</span><span>剪映</span><span>Premiere Pro</span><span>Python</span><span>Feishu</span><span>Obsidian</span><span>TikTok</span><span>X</span><span>YouTube</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact">
+        <div class="shell contact-grid">
+          <div class="card">
+            <div class="kicker">Contact</div>
+            <h2>联系与作品</h2>
+            <p>男，21 岁。华南农业大学本科在读，地理信息科学专业。求职方向：AIGC 产品运营、AI 内容增长、AI 商业化运营、海外社媒运营。</p>
+          </div>
+          <div class="card">
+            <h3>进一步了解</h3>
+            <div class="actions">
+              <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">飞书作品集</a>
+              <a class="button" href="#cases">项目案例</a>
+              <a class="button" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">GitHub Profile</a>
+              <a class="button" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">重点仓库</a>
+              <a class="button" href="tel:18776006994">18776006994</a>
+              <a class="button" href="mailto:3304816001@qq.com">3304816001@qq.com</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="shell footer-inner">
+        <p><strong>李忆超</strong> · AI视频流程型运营 · AIGC产品运营候选人 · 内容生产到 AI 自动化流程</p>
+        <a class="button" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </body>
+</html>
