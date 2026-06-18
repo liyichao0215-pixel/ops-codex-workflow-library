@@ -1,0 +1,1248 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>李忆超 - 注意力机制作品集测试版</title>
+    <meta
+      name="description"
+      content="李忆超面向深圳 AI 岗位 HR 的作品集测试版。通过注意力机制、证据墙、岗位路径和交互式工作流突出 AIGC 产品运营、AI 内容增长和商业化能力。"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #06080c;
+        --bg-2: #0a0f17;
+        --surface: rgba(13, 18, 27, 0.82);
+        --surface-2: rgba(18, 26, 38, 0.88);
+        --surface-3: rgba(244, 251, 255, 0.06);
+        --ink: #f4fbff;
+        --muted: #96a6b8;
+        --soft: rgba(224, 236, 244, 0.78);
+        --line: rgba(155, 171, 190, 0.22);
+        --mint: #72f2df;
+        --green: #8ff3d0;
+        --amber: #ffd286;
+        --rose: #ff738f;
+        --violet: #b8a7ff;
+        --blue: #75b7ff;
+        --radius: 8px;
+        --shadow: 0 28px 90px rgba(0, 0, 0, 0.36);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          radial-gradient(circle at 16% 8%, rgba(114, 242, 223, 0.12), transparent 30%),
+          radial-gradient(circle at 80% 12%, rgba(184, 167, 255, 0.11), transparent 28%),
+          linear-gradient(180deg, #05070b 0%, #080c12 44%, #06080c 100%);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      a { color: inherit; text-decoration: none; }
+      p, h1, h2, h3 { margin: 0; }
+      button { font: inherit; color: inherit; }
+      .shell { width: min(100% - 48px, 1180px); margin: 0 auto; }
+      .progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 60;
+        width: 100%;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .progress span {
+        display: block;
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--mint), var(--amber), var(--violet));
+      }
+
+      .nav-wrap {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(6, 8, 12, 0.76);
+        backdrop-filter: blur(20px);
+      }
+
+      .nav {
+        min-height: 66px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-weight: 900;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(114, 242, 223, 0.48);
+        border-radius: 8px;
+        color: #061016;
+        background: linear-gradient(135deg, var(--mint), var(--violet));
+        box-shadow: 0 0 34px rgba(114, 242, 223, 0.18);
+      }
+
+      .nav-links { display: flex; align-items: center; gap: 4px; }
+      .nav-links a {
+        padding: 9px 10px;
+        border-radius: 7px;
+        color: rgba(244, 251, 255, 0.7);
+        font-size: 14px;
+        font-weight: 820;
+        white-space: nowrap;
+      }
+
+      .nav-links a:hover,
+      .nav-links a.is-active {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--ink);
+      }
+
+      .nav-cta {
+        color: #061016 !important;
+        background: linear-gradient(135deg, rgba(114, 242, 223, 0.96), rgba(255, 210, 134, 0.88)) !important;
+      }
+
+      .hero {
+        min-height: calc(100vh - 66px);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 38px;
+        align-items: center;
+        padding: 56px 0 42px;
+      }
+
+      .eyebrow {
+        width: fit-content;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        border: 1px solid rgba(143, 243, 208, 0.3);
+        border-radius: 8px;
+        padding: 8px 10px;
+        color: #b8fff0;
+        background: rgba(9, 15, 22, 0.72);
+        font-size: 13px;
+        font-weight: 920;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 5px rgba(143, 243, 208, 0.13);
+      }
+
+      h1 {
+        max-width: 840px;
+        margin-top: 18px;
+        font-size: clamp(44px, 6.2vw, 82px);
+        line-height: 0.98;
+        letter-spacing: 0;
+        font-weight: 960;
+      }
+
+      h1 span {
+        display: block;
+        color: var(--mint);
+      }
+
+      .lead {
+        max-width: 800px;
+        margin-top: 22px;
+        color: rgba(230, 241, 248, 0.82);
+        font-size: 18px;
+        line-height: 1.78;
+      }
+
+      .hero-actions,
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .hero-actions { margin-top: 26px; }
+
+      .button {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.07);
+        color: rgba(244, 251, 255, 0.92);
+        font-size: 14px;
+        font-weight: 880;
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+        border-color: rgba(143, 243, 208, 0.5);
+        background: rgba(255, 255, 255, 0.11);
+      }
+
+      .button.primary {
+        color: #061016;
+        border-color: rgba(143, 243, 208, 0.58);
+        background: linear-gradient(135deg, rgba(114, 242, 223, 0.96), rgba(255, 210, 134, 0.86));
+      }
+
+      .button.ghost {
+        color: #b8fff0;
+        background: rgba(114, 242, 223, 0.08);
+      }
+
+      .focus-console {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(155, 171, 190, 0.24);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(180deg, rgba(114, 242, 223, 0.08), transparent 30%),
+          rgba(10, 14, 22, 0.84);
+        box-shadow: var(--shadow);
+      }
+
+      .focus-console::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: linear-gradient(to bottom, black, transparent 78%);
+      }
+
+      .avatar-frame {
+        position: relative;
+        padding: 14px;
+      }
+
+      .avatar-frame img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 8px;
+      }
+
+      .signal-card {
+        position: relative;
+        margin: -32px 14px 14px;
+        border: 1px solid rgba(114, 242, 223, 0.3);
+        border-radius: 8px;
+        padding: 15px;
+        background: rgba(5, 9, 14, 0.86);
+        backdrop-filter: blur(18px);
+      }
+
+      .signal-card strong {
+        display: block;
+        color: var(--mint);
+        font-size: 17px;
+      }
+
+      .signal-card p {
+        margin-top: 8px;
+        color: var(--soft);
+        line-height: 1.62;
+        font-size: 14px;
+      }
+
+      .path-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .path-item {
+        display: grid;
+        grid-template-columns: 26px 1fr auto;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 7px;
+        padding: 9px;
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(244, 251, 255, 0.86);
+        font-size: 13px;
+        font-weight: 820;
+      }
+
+      .path-item span:first-child {
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
+        color: #061016;
+        background: var(--mint);
+        font-size: 12px;
+      }
+
+      .path-item em {
+        color: var(--amber);
+        font-style: normal;
+        font-size: 12px;
+      }
+
+      .metric-strip {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 28px;
+      }
+
+      .metric {
+        min-height: 106px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.055);
+      }
+
+      .metric strong {
+        display: block;
+        color: var(--green);
+        font-size: 30px;
+        line-height: 1;
+      }
+
+      .metric span {
+        display: block;
+        margin-top: 8px;
+        color: rgba(224, 236, 244, 0.72);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      section {
+        padding: 72px 0;
+        scroll-margin-top: 92px;
+      }
+
+      section:nth-of-type(even) {
+        background: rgba(255, 255, 255, 0.022);
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+
+      .kicker {
+        color: var(--green);
+        font-size: 13px;
+        font-weight: 920;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin-top: 8px;
+        font-size: clamp(30px, 4vw, 46px);
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+
+      .section-head p {
+        max-width: 520px;
+        color: var(--muted);
+        line-height: 1.75;
+      }
+
+      .command-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .command-card,
+      .evidence-card,
+      .project-card,
+      .workflow-card,
+      .role-panel,
+      .note-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24);
+      }
+
+      .command-card {
+        min-height: 210px;
+        display: flex;
+        flex-direction: column;
+        padding: 18px;
+        transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+
+      .command-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(114, 242, 223, 0.42);
+        background: rgba(18, 28, 42, 0.9);
+      }
+
+      .command-card small {
+        width: fit-content;
+        border: 1px solid rgba(114, 242, 223, 0.26);
+        border-radius: 999px;
+        padding: 5px 8px;
+        color: #b8fff0;
+        background: rgba(114, 242, 223, 0.09);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .command-card h3 {
+        margin-top: 16px;
+        font-size: 21px;
+        line-height: 1.28;
+      }
+
+      .command-card p {
+        margin-top: 10px;
+        color: rgba(224, 236, 244, 0.74);
+        line-height: 1.66;
+        font-size: 14px;
+      }
+
+      .command-card .button {
+        width: fit-content;
+        margin-top: auto;
+      }
+
+      .evidence-layout {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 14px;
+      }
+
+      .evidence-card {
+        min-height: 230px;
+        padding: 22px;
+      }
+
+      .evidence-card.featured {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        align-items: center;
+        background:
+          linear-gradient(135deg, rgba(114, 242, 223, 0.15), rgba(255, 210, 134, 0.09)),
+          rgba(9, 14, 22, 0.86);
+      }
+
+      .evidence-card h3 {
+        font-size: 24px;
+        line-height: 1.22;
+      }
+
+      .evidence-card p {
+        margin-top: 10px;
+        color: rgba(224, 236, 244, 0.78);
+        line-height: 1.72;
+      }
+
+      .evidence-stack {
+        display: grid;
+        gap: 14px;
+      }
+
+      .mini-evidence {
+        min-height: 108px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.055);
+      }
+
+      .mini-evidence strong {
+        color: var(--mint);
+        font-size: 18px;
+      }
+
+      .mini-evidence p {
+        margin-top: 7px;
+        color: rgba(224, 236, 244, 0.72);
+        line-height: 1.56;
+        font-size: 14px;
+      }
+
+      .workflow-shell {
+        display: grid;
+        grid-template-columns: 270px minmax(0, 1fr);
+        gap: 18px;
+      }
+
+      .focus-rail {
+        position: sticky;
+        top: 92px;
+        align-self: start;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 16px;
+        background: rgba(9, 14, 22, 0.74);
+      }
+
+      .focus-rail h3 {
+        font-size: 18px;
+      }
+
+      .rail-links {
+        display: grid;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .rail-links a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 7px;
+        padding: 9px 10px;
+        color: rgba(244, 251, 255, 0.7);
+        background: rgba(255, 255, 255, 0.035);
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .rail-links a.is-active {
+        color: var(--ink);
+        border-color: rgba(114, 242, 223, 0.42);
+        background: rgba(114, 242, 223, 0.11);
+      }
+
+      .rail-links span {
+        color: var(--amber);
+        font-size: 12px;
+      }
+
+      .workflow-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .workflow-card {
+        min-height: 220px;
+        padding: 18px;
+        opacity: 0.76;
+        transform: translateY(8px);
+        transition: opacity 240ms ease, transform 240ms ease, border-color 240ms ease;
+      }
+
+      .workflow-card.in-view,
+      .workflow-card.is-hot {
+        opacity: 1;
+        transform: translateY(0);
+        border-color: rgba(114, 242, 223, 0.38);
+      }
+
+      .workflow-card strong {
+        color: var(--amber);
+        font-size: 13px;
+      }
+
+      .workflow-card h3 {
+        margin-top: 12px;
+        font-size: 22px;
+      }
+
+      .workflow-card p {
+        margin-top: 12px;
+        color: rgba(224, 236, 244, 0.76);
+        line-height: 1.68;
+      }
+
+      .project-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .project-card {
+        min-height: 385px;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+      }
+
+      .project-card h3 {
+        font-size: 23px;
+        line-height: 1.25;
+      }
+
+      .project-card dl {
+        display: grid;
+        gap: 12px;
+        margin: 18px 0 0;
+      }
+
+      .project-card dt {
+        color: var(--green);
+        font-size: 13px;
+        font-weight: 920;
+      }
+
+      .project-card dd {
+        margin: 5px 0 0;
+        color: rgba(224, 236, 244, 0.75);
+        line-height: 1.64;
+      }
+
+      .project-card .actions {
+        margin-top: auto;
+        padding-top: 18px;
+      }
+
+      .role-wrap {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .role-tabs {
+        display: grid;
+        gap: 10px;
+      }
+
+      .role-tab {
+        min-height: 58px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: left;
+        background: rgba(255, 255, 255, 0.045);
+        cursor: pointer;
+      }
+
+      .role-tab.is-active {
+        color: #061016;
+        border-color: transparent;
+        background: linear-gradient(135deg, rgba(114, 242, 223, 0.96), rgba(255, 210, 134, 0.86));
+      }
+
+      .role-tab strong { display: block; font-size: 15px; }
+      .role-tab span { display: block; margin-top: 4px; color: inherit; opacity: 0.72; font-size: 12px; }
+
+      .role-panel {
+        min-height: 350px;
+        padding: 24px;
+      }
+
+      .role-panel h3 {
+        font-size: 28px;
+        line-height: 1.18;
+      }
+
+      .role-panel p {
+        margin-top: 12px;
+        color: rgba(224, 236, 244, 0.78);
+        line-height: 1.74;
+      }
+
+      .role-list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .role-list div {
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 8px;
+        padding: 13px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .role-list strong {
+        display: block;
+        color: var(--mint);
+        font-size: 14px;
+      }
+
+      .role-list span {
+        display: block;
+        margin-top: 7px;
+        color: rgba(224, 236, 244, 0.72);
+        line-height: 1.5;
+        font-size: 13px;
+      }
+
+      .note-card {
+        padding: 20px;
+        background:
+          linear-gradient(135deg, rgba(255, 210, 134, 0.1), rgba(184, 167, 255, 0.08)),
+          rgba(9, 14, 22, 0.82);
+      }
+
+      .note-card p {
+        color: rgba(255, 236, 198, 0.86);
+        line-height: 1.72;
+      }
+
+      .contact {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        align-items: center;
+        border: 1px solid rgba(114, 242, 223, 0.22);
+        border-radius: var(--radius);
+        padding: 24px;
+        background: rgba(9, 14, 22, 0.84);
+      }
+
+      .contact p {
+        margin-top: 10px;
+        max-width: 760px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      footer {
+        padding: 42px 0;
+        color: rgba(224, 236, 244, 0.58);
+      }
+
+      .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .footer-inner a {
+        color: var(--mint);
+      }
+
+      @media (max-width: 1060px) {
+        .hero,
+        .workflow-shell,
+        .evidence-layout,
+        .role-wrap,
+        .contact {
+          grid-template-columns: 1fr;
+        }
+        .focus-console { max-width: 390px; }
+        .focus-rail { position: static; }
+        .command-grid,
+        .metric-strip {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 760px) {
+        .shell { width: min(100% - 28px, 1180px); }
+        .nav {
+          min-height: auto;
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 14px 0;
+        }
+        .nav-links {
+          width: 100%;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .nav-links a {
+          padding: 7px 8px;
+          font-size: 13px;
+        }
+        .hero { padding-top: 42px; }
+        h1 { font-size: 38px; }
+        .lead { font-size: 16px; }
+        section {
+          padding: 52px 0;
+          scroll-margin-top: 130px;
+        }
+        .section-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .command-grid,
+        .metric-strip,
+        .workflow-grid,
+        .project-grid,
+        .role-list {
+          grid-template-columns: 1fr;
+        }
+        .evidence-card.featured {
+          grid-template-columns: 1fr;
+        }
+        .footer-inner {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress" aria-hidden="true"><span id="read-progress"></span></div>
+    <header class="nav-wrap">
+      <nav class="shell nav" aria-label="测试版导航">
+        <a class="brand" href="#top" aria-label="回到测试版首页">
+          <span class="brand-mark">李</span>
+          <span>李忆超 · Attention Test</span>
+        </a>
+        <div class="nav-links">
+          <a href="#route">岗位路径</a>
+          <a href="#evidence">证据墙</a>
+          <a href="#workflow">工作流</a>
+          <a href="#projects">项目</a>
+          <a href="#roles">岗位匹配</a>
+          <a class="nav-cta" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">飞书作品集</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <div class="shell hero">
+        <div>
+          <div class="eyebrow">测试版 · 面向深圳 AI 岗位 HR 的注意力路径</div>
+          <h1>先看证据，<span>再看我如何落地。</span></h1>
+          <p class="lead">
+            我把个人网站从“信息陈列”改成“岗位证据流”：首屏聚焦飞书作品集，随后用数据、流程、GitHub 和项目案例把 AIGC 产品运营、AI 内容增长、商业化增长能力串起来。
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">打开飞书作品集</a>
+            <a class="button ghost" href="#route">按岗位看证据</a>
+            <a class="button" href="#workflow">看我的工作方式</a>
+          </div>
+          <div class="metric-strip" aria-label="核心结果">
+            <div class="metric"><strong>200+</strong><span>AIGC 视频和素材相关产出</span></div>
+            <div class="metric"><strong>500w+</strong><span>多平台内容流量累计</span></div>
+            <div class="metric"><strong>+25%</strong><span>品牌电商投放点击率提升</span></div>
+            <div class="metric"><strong>-40%</strong><span>视频制作周期缩短</span></div>
+            <div class="metric"><strong>ROI 2-3</strong><span>商业化投流和 GMV 经验</span></div>
+          </div>
+        </div>
+
+        <aside class="focus-console" aria-label="个人重点信息">
+          <div class="avatar-frame">
+            <img src="./assets/personal-avatar-ai-workflow.png" width="1024" height="1024" alt="李忆超 AI 工作流产品运营虚拟形象" />
+          </div>
+          <div class="signal-card">
+            <strong>3 分钟判断路径</strong>
+            <p>让阅读者从作品集进入，再用岗位路径和证据墙验证能力，不让重点信息被普通卡片淹没。</p>
+            <div class="path-list">
+              <a class="path-item" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer"><span>1</span><b>飞书作品集</b><em>核心入口</em></a>
+              <a class="path-item" href="#route"><span>2</span><b>岗位路径</b><em>快速匹配</em></a>
+              <a class="path-item" href="#evidence"><span>3</span><b>证据墙</b><em>可验证</em></a>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section id="route" data-section="岗位路径">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Role Routes</div>
+              <h2>让 HR 按岗位进入，而不是自己找重点</h2>
+            </div>
+            <p>借鉴 Raycast 的快速入口思路，把不同岗位关心的问题直接摆在第一屏之后。</p>
+          </div>
+          <div class="command-grid">
+            <article class="command-card">
+              <small>AIGC 产品运营</small>
+              <h3>看流程、SOP、反馈和跨团队协作</h3>
+              <p>重点证明我能把内容生产需求拆成字段、流程、质量门禁和可复用配置。</p>
+              <a class="button" href="#workflow">查看流程</a>
+            </article>
+            <article class="command-card">
+              <small>AI 内容增长</small>
+              <h3>看选题、爆款拆解、发布包和复盘</h3>
+              <p>重点证明我不是只会生成内容，而是能围绕流量和转化持续改进。</p>
+              <a class="button" href="#projects">查看项目</a>
+            </article>
+            <article class="command-card">
+              <small>商业化增长</small>
+              <h3>看点击率、GMV、ROI 和投流经验</h3>
+              <p>重点证明我懂内容和商业目标之间的连接，不只停留在审美判断。</p>
+              <a class="button" href="#evidence">查看数据</a>
+            </article>
+            <article class="command-card">
+              <small>海外社媒 / AI 硬件</small>
+              <h3>看 TikTok / X / YouTube 发布链路</h3>
+              <p>重点证明我能处理跨平台标题、封面、标签、披露和发布状态回写。</p>
+              <a class="button" href="#roles">查看匹配</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="evidence" data-section="证据墙">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Evidence Wall</div>
+              <h2>把最强证明做成一个注意力锚点</h2>
+            </div>
+            <p>借鉴 Dub 的数据表达方式，把链接、指标和可验证资产放在同一个视觉层级里。</p>
+          </div>
+          <div class="evidence-layout">
+            <article class="evidence-card featured">
+              <div>
+                <h3>飞书作品集是第一证据入口</h3>
+                <p>
+                  飞书承接更完整的案例、截图、流程文档和复盘内容；网站负责把阅读者引导到最值得看的证据。
+                </p>
+              </div>
+              <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">打开作品集</a>
+            </article>
+            <div class="evidence-stack">
+              <div class="mini-evidence">
+                <strong>GitHub 公开仓库</strong>
+                <p>展示工作流资产库、静态前端、Node + SQLite 后端、审核流程和部署说明。</p>
+              </div>
+              <div class="mini-evidence">
+                <strong>可面试项目</strong>
+                <p>项目案例按“问题、动作、结果、证据”重排，方便面试追问。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" data-section="工作流">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Workflow</div>
+              <h2>把工作方式做成可跟随的流程</h2>
+            </div>
+            <p>借鉴 Linear 的系统感：阅读者滚动时看到的是一套业务链路，而不是零散技能。</p>
+          </div>
+          <div class="workflow-shell">
+            <aside class="focus-rail" aria-label="流程高亮">
+              <h3>当前重点</h3>
+              <div class="rail-links">
+                <a class="is-active" href="#step-1" data-rail="step-1">业务拆解 <span>01</span></a>
+                <a href="#step-2" data-rail="step-2">脚本模板 <span>02</span></a>
+                <a href="#step-3" data-rail="step-3">AI 生成 <span>03</span></a>
+                <a href="#step-4" data-rail="step-4">人工复核 <span>04</span></a>
+                <a href="#step-5" data-rail="step-5">数据复盘 <span>05</span></a>
+                <a href="#step-6" data-rail="step-6">SOP 自动化 <span>06</span></a>
+              </div>
+            </aside>
+            <div class="workflow-grid">
+              <article class="workflow-card is-hot" id="step-1" data-step="step-1">
+                <strong>01</strong>
+                <h3>业务拆解</h3>
+                <p>判断目标、人群、渠道和转化动作，把模糊任务拆成可执行清单。</p>
+              </article>
+              <article class="workflow-card" id="step-2" data-step="step-2">
+                <strong>02</strong>
+                <h3>脚本模板</h3>
+                <p>沉淀标题、卖点、钩子、节奏和分镜模板，减少重复试错。</p>
+              </article>
+              <article class="workflow-card" id="step-3" data-step="step-3">
+                <strong>03</strong>
+                <h3>AI 生成</h3>
+                <p>用 Sora、Veo、即梦、可灵、Flova 等工具生成场景、镜头和视觉素材。</p>
+              </article>
+              <article class="workflow-card" id="step-4" data-step="step-4">
+                <strong>04</strong>
+                <h3>人工复核</h3>
+                <p>把质量、合规、品牌调性和发布边界放进检查清单，避免自动化失控。</p>
+              </article>
+              <article class="workflow-card" id="step-5" data-step="step-5">
+                <strong>05</strong>
+                <h3>数据复盘</h3>
+                <p>跟踪流量、点击、转化、私域承接和反馈，找到内容缺口。</p>
+              </article>
+              <article class="workflow-card" id="step-6" data-step="step-6">
+                <strong>06</strong>
+                <h3>SOP / 自动化</h3>
+                <p>把有效动作变成字段、脚本、检查清单和可复用自动化流程。</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" data-section="项目">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Proof Projects</div>
+              <h2>项目卡从“介绍”变成“面试追问入口”</h2>
+            </div>
+            <p>每个项目都用同一套结构呈现，让阅读者快速判断价值、动作和结果。</p>
+          </div>
+          <div class="project-grid">
+            <article class="project-card">
+              <h3>AI 视频生产链路</h3>
+              <dl>
+                <div>
+                  <dt>问题</dt>
+                  <dd>多账号内容生产容易散、慢、不可复盘。</dd>
+                </div>
+                <div>
+                  <dt>动作</dt>
+                  <dd>连接 Feishu 配置、热点池、Prompt 记忆、Flova 项目、素材状态和人工复核。</dd>
+                </div>
+                <div>
+                  <dt>结果</dt>
+                  <dd>形成从选题到发布包的可复用链路，支撑 200+ 视频和素材相关产出。</dd>
+                </div>
+              </dl>
+              <div class="actions">
+                <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">看飞书证据</a>
+              </div>
+            </article>
+            <article class="project-card">
+              <h3>运营 Codex 工作流资产库</h3>
+              <dl>
+                <div>
+                  <dt>问题</dt>
+                  <dd>运营经验如果不沉淀，很难被同事复用和审核。</dd>
+                </div>
+                <div>
+                  <dt>动作</dt>
+                  <dd>搭建公开仓库，包含前端、Node + SQLite 后端、投稿审核、测试和部署说明。</dd>
+                </div>
+                <div>
+                  <dt>结果</dt>
+                  <dd>把运营经验包装成可验证、可面试、可继续迭代的工作流资产。</dd>
+                </div>
+              </dl>
+              <div class="actions">
+                <a class="button" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">查看 GitHub</a>
+              </div>
+            </article>
+            <article class="project-card">
+              <h3>AIGC 商业视频提效</h3>
+              <dl>
+                <div>
+                  <dt>问题</dt>
+                  <dd>商业视频既要效率，也要卖点清晰和转化指标。</dd>
+                </div>
+                <div>
+                  <dt>动作</dt>
+                  <dd>拆品牌卖点、脚本、AI 场景、后期优化和数据复盘，形成投放素材迭代流程。</dd>
+                </div>
+                <div>
+                  <dt>结果</dt>
+                  <dd>点击率提升 +25%，制作周期缩短 -40%，沉淀 GMV 和 ROI 经验。</dd>
+                </div>
+              </dl>
+              <div class="actions">
+                <a class="button" href="#evidence">看结果证据</a>
+              </div>
+            </article>
+            <article class="project-card">
+              <h3>三平台发布包系统</h3>
+              <dl>
+                <div>
+                  <dt>问题</dt>
+                  <dd>TikTok、X、YouTube 的发布字段、披露和状态容易混乱。</dd>
+                </div>
+                <div>
+                  <dt>动作</dt>
+                  <dd>设计 title、caption、hashtags、cover、schedule、AI disclosure 和 status writeback 字段。</dd>
+                </div>
+                <div>
+                  <dt>结果</dt>
+                  <dd>把内容发布从临场判断变成可复用发布包，适合海外社媒和跨境 AI 硬件团队。</dd>
+                </div>
+              </dl>
+              <div class="actions">
+                <a class="button" href="#roles">看岗位匹配</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="roles" data-section="岗位匹配">
+        <div class="shell">
+          <div class="section-head">
+            <div>
+              <div class="kicker">Role Match</div>
+              <h2>让岗位匹配变成可切换视角</h2>
+            </div>
+            <p>同一套经历，针对不同岗位要突出不同证据，避免让 HR 自己重组信息。</p>
+          </div>
+          <div class="role-wrap">
+            <div class="role-tabs" role="tablist" aria-label="岗位匹配">
+              <button class="role-tab is-active" type="button" data-role="product"><strong>AIGC 产品运营</strong><span>流程 / SOP / 用户反馈</span></button>
+              <button class="role-tab" type="button" data-role="content"><strong>AI 内容增长</strong><span>选题 / 发布 / 复盘</span></button>
+              <button class="role-tab" type="button" data-role="growth"><strong>AI 商业化增长</strong><span>GMV / ROI / 转化</span></button>
+              <button class="role-tab" type="button" data-role="overseas"><strong>海外社媒 / AI 硬件</strong><span>跨平台 / 出海内容</span></button>
+            </div>
+            <article class="role-panel" aria-live="polite">
+              <h3 id="role-title">AIGC 产品运营</h3>
+              <p id="role-copy">给产品运营负责人看：我能把内容供给、用户反馈、Prompt、AI 视频生产链路和跨团队协作拆成流程与字段，不只是执行单条内容。</p>
+              <div class="role-list" id="role-list">
+                <div><strong>核心证明</strong><span>Feishu 配置、SOP、流程字段、人工复核边界</span></div>
+                <div><strong>可追问项目</strong><span>AI 视频生产链路、Codex 工作流资产库</span></div>
+                <div><strong>下一步增强</strong><span>补用户访谈、PRD、需求优先级和版本迭代记录</span></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" data-section="联系">
+        <div class="shell">
+          <div class="contact">
+            <div>
+              <div class="kicker">Contact</div>
+              <h2>测试版结论入口</h2>
+              <p>这个版本把飞书作品集放在最强位置，再用岗位路径、证据墙和工作流滚动高亮，把注意力从“看完整页面”改成“先看到最能证明能力的内容”。</p>
+            </div>
+            <div class="actions">
+              <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">飞书作品集</a>
+              <a class="button" href="mailto:3304816001@qq.com">3304816001@qq.com</a>
+              <a class="button" href="tel:18776006994">18776006994</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="shell footer-inner">
+        <span>Attention test version · 原正式主页不变</span>
+        <a href="https://liyichao0215-pixel.github.io/">返回正式主页</a>
+      </div>
+    </footer>
+
+    <script>
+      const progress = document.querySelector("#read-progress");
+      const navLinks = [...document.querySelectorAll(".nav-links a[href^='#']")];
+      const sections = [...document.querySelectorAll("section[data-section]")];
+      const workflowCards = [...document.querySelectorAll(".workflow-card")];
+      const railLinks = [...document.querySelectorAll("[data-rail]")];
+      const roleData = {
+        product: {
+          title: "AIGC 产品运营",
+          copy: "给产品运营负责人看：我能把内容供给、用户反馈、Prompt、AI 视频生产链路和跨团队协作拆成流程与字段，不只是执行单条内容。",
+          items: [
+            ["核心证明", "Feishu 配置、SOP、流程字段、人工复核边界"],
+            ["可追问项目", "AI 视频生产链路、Codex 工作流资产库"],
+            ["下一步增强", "补用户访谈、PRD、需求优先级和版本迭代记录"]
+          ]
+        },
+        content: {
+          title: "AI 内容增长",
+          copy: "给内容增长团队看：我能从热点、脚本、AIGC 生成、发布包和数据复盘里寻找增长杠杆。",
+          items: [
+            ["核心证明", "200+ 产出、500w+ 流量、热点池和发布包字段"],
+            ["可追问项目", "AIGC 商业视频提效、三平台发布包系统"],
+            ["下一步增强", "补账号分层、A/B 封面测试和内容漏斗看板"]
+          ]
+        },
+        growth: {
+          title: "AI 商业化 / 增长运营",
+          copy: "给商业化负责人看：我能把内容生产和投放结果连接起来，用点击、GMV、ROI 和转化反馈优化素材。",
+          items: [
+            ["核心证明", "+25% 点击率、-40% 制作周期、GMV 30w、ROI 2-3"],
+            ["可追问项目", "商业视频卖点拆解和投流素材迭代"],
+            ["下一步增强", "补渠道成本、转化漏斗和预算分配复盘"]
+          ]
+        },
+        overseas: {
+          title: "海外社媒 / 跨境 AI 硬件运营",
+          copy: "给出海团队看：我能把 TikTok、X、YouTube 的标题、标签、封面、AI disclosure 和状态回写拆成发布包。",
+          items: [
+            ["核心证明", "三平台发布字段、跨平台内容节奏、AI 内容披露意识"],
+            ["可追问项目", "三平台发布包系统、海外账号内容生产链路"],
+            ["下一步增强", "补英文作品集页、海外竞品拆解和用户评论复盘"]
+          ]
+        }
+      };
+
+      function updateProgress() {
+        const height = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = height > 0 ? window.scrollY / height : 0;
+        progress.style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
+      }
+
+      window.addEventListener("scroll", updateProgress, { passive: true });
+      updateProgress();
+
+      const sectionObserver = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        navLinks.forEach((link) => {
+          link.classList.toggle("is-active", link.getAttribute("href") === `#${visible.target.id}`);
+        });
+      }, { threshold: [0.28, 0.48, 0.68] });
+
+      sections.forEach((section) => sectionObserver.observe(section));
+
+      const workflowObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const step = entry.target.dataset.step;
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            workflowCards.forEach((card) => card.classList.toggle("is-hot", card === entry.target));
+            railLinks.forEach((link) => link.classList.toggle("is-active", link.dataset.rail === step));
+          }
+        });
+      }, { rootMargin: "-25% 0px -45% 0px", threshold: 0.15 });
+
+      workflowCards.forEach((card) => workflowObserver.observe(card));
+
+      document.querySelectorAll(".role-tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const data = roleData[tab.dataset.role];
+          document.querySelectorAll(".role-tab").forEach((item) => item.classList.remove("is-active"));
+          tab.classList.add("is-active");
+          document.querySelector("#role-title").textContent = data.title;
+          document.querySelector("#role-copy").textContent = data.copy;
+          document.querySelector("#role-list").innerHTML = data.items
+            .map(([title, copy]) => `<div><strong>${title}</strong><span>${copy}</span></div>`)
+            .join("");
+        });
+      });
+    </script>
+  </body>
+</html>
