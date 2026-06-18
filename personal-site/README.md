@@ -9,6 +9,7 @@
 - 线上参考：https://meek-meerkat-bef749.netlify.app/
 - 联系邮箱：3304816001@qq.com
 - 重点仓库：https://github.com/liyichao0215-pixel/ops-codex-workflow-library
+- Netlify 发布目录：`personal-site`
 
 ## 目录
 
