@@ -4,8 +4,8 @@
 
 ## 当前版本
 
-- 版本：v1
-- 日期：2026-06-13
+- 版本：v2 portfolio
+- 日期：2026-06-18
 - 线上参考：https://meek-meerkat-bef749.netlify.app/
 - 联系邮箱：3304816001@qq.com
 - 重点仓库：https://github.com/liyichao0215-pixel/ops-codex-workflow-library
@@ -13,7 +13,8 @@
 ## 目录
 
 ```text
-index.html      个人网站首页
+index.html       个人作品集首页
+resumes/         面向不同岗位的单页 PDF 简历
 ```
 
 当前 `index.html` 使用现有 Netlify 站点的头像和 favicon 线上资源，便于先把可迭代版本放入 GitHub。后续如果要完全脱离 Netlify，可以再把图片资源迁入仓库。
@@ -22,14 +23,25 @@ index.html      个人网站首页
 
 核心定位：
 
-> AI 视频流程型运营，把内容生产推进到可复用流程。
+> AI 视频流程型运营 / AIGC 产品运营候选人 / AI 内容增长候选人，把 AI 内容生产做成可增长的业务系统。
 
 页面优先展示：
 
-1. 电商内容运营、AIGC 商业视频和数据复盘经验。
-2. 视频产出、流量、点击率、制作周期等结果证明。
-3. 将业务流程沉淀为脚本模板、SOP、AI 辅助链路和自动化执行系统的能力。
-4. GitHub 仓库 `ops-codex-workflow-library`，作为运营工作流资产库和 Codex 自动化实践的公开证明。
+1. 面向深圳 AI 岗位 HR 的首屏定位和数字证据。
+2. 四个可面试项目案例：AI 视频生产链路、运营 Codex 工作流资产库、AIGC 商业视频提效、三平台发布包系统。
+3. GitHub 公开证明：个人主页、重点仓库、备用 GitHub Pages 仓库说明。
+4. 开源项目的透明业务落地方案：Postiz、n8n、RAGFlow、PostHog、Resume Matcher。
+5. 四份岗位定制简历：AIGC 产品运营、AIGC 内容增长、AI 商业化增长、海外社媒/跨境 AI 硬件。
+
+## 开源项目表达原则
+
+页面中的开源项目均以“业务落地方案”表达，不声称作者身份：
+
+- `已落地`：已有真实仓库、流程、文档或可验证产物。
+- `原型中`：已完成字段、流程或方案设计，但未完整上线。
+- `参考方案`：仅作为产品理解或技术路线参考。
+
+除 `ops-codex-workflow-library` 外，不把第三方开源项目包装成个人原创项目。
 
 ## 后续迭代记录
 
