@@ -6,7 +6,7 @@
     <title>李忆超 - AI视频流程型运营作品集</title>
     <meta
       name="description"
-      content="李忆超，AI视频流程型运营 / AIGC产品运营候选人 / AI内容增长候选人。展示AIGC视频生产、AI工作流搭建、商业化结果、GitHub项目和岗位简历。"
+      content="李忆超，AI视频流程型运营 / AIGC产品运营候选人 / AI内容增长候选人。展示AIGC视频生产、AI工作流搭建、商业化结果、GitHub项目、求职意向和开源落地建议。"
     />
     <link rel="icon" type="image/png" href="https://meek-meerkat-bef749.netlify.app/assets/favicon.png" />
     <style>
@@ -242,11 +242,11 @@
       h2 { margin-top: 8px; font-size: clamp(28px, 4vw, 40px); line-height: 1.16; }
       .section-head p { max-width: 500px; color: var(--muted); line-height: 1.75; }
 
-      .metric-grid, .case-grid, .open-grid, .resume-grid, .method-grid { display: grid; gap: 14px; }
+      .metric-grid, .case-grid, .open-grid, .intent-grid, .method-grid { display: grid; gap: 14px; }
       .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .case-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .open-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-      .resume-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .intent-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .method-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 
       .card { padding: 20px; }
@@ -308,6 +308,59 @@
         line-height: 1.68;
       }
 
+      .intent-card {
+        min-height: 360px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .intent-role {
+        width: fit-content;
+        border: 1px solid rgba(148, 197, 255, 0.28);
+        border-radius: 999px;
+        padding: 5px 9px;
+        color: #cbe0ff;
+        background: rgba(148, 197, 255, 0.08);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .intent-block strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--green);
+        font-size: 13px;
+      }
+
+      .intent-block p {
+        margin: 0;
+        color: rgba(219, 231, 240, 0.82);
+        font-size: 14px;
+        line-height: 1.72;
+      }
+
+      .project-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .project-links a {
+        min-height: 30px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 999px;
+        padding: 5px 9px;
+        color: rgba(244, 251, 255, 0.88);
+        background: rgba(255, 255, 255, 0.07);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .project-links a:hover { border-color: rgba(143, 243, 208, 0.42); color: var(--ink); }
+
       .method-grid .card { min-height: 178px; }
       .method-grid strong { color: var(--amber); font-size: 13px; }
       .method-grid h3 { margin-top: 10px; font-size: 18px; }
@@ -330,7 +383,7 @@
       .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 18px; }
 
       @media (max-width: 1100px) {
-        .proof-grid, .open-grid, .resume-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .proof-grid, .open-grid, .intent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .method-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       }
 
@@ -363,7 +416,7 @@
           padding: 48px 0;
           scroll-margin-top: 132px;
         }
-        .proof-grid, .open-grid, .resume-grid, .method-grid { grid-template-columns: 1fr; }
+        .proof-grid, .open-grid, .intent-grid, .method-grid { grid-template-columns: 1fr; }
         .button { width: 100%; }
         .meta { flex-direction: column; }
       }
@@ -381,7 +434,7 @@
           <a href="#cases">项目案例</a>
           <a href="#github">GitHub</a>
           <a href="#opensource">开源落地方案</a>
-          <a href="#resume">简历</a>
+          <a href="#intentions">求职意向</a>
           <a href="#contact">联系</a>
         </div>
       </nav>
@@ -406,7 +459,7 @@
             <a class="button primary" href="#cases">查看项目案例</a>
             <a class="button" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">GitHub Profile</a>
             <a class="button" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">重点仓库</a>
-            <a class="button" href="#resume">岗位简历</a>
+            <a class="button" href="#intentions">求职意向</a>
           </div>
         </div>
 
@@ -600,35 +653,98 @@
         </div>
       </section>
 
-      <section id="resume">
+      <section id="intentions">
         <div class="shell">
           <div class="section-head">
             <div>
-              <div class="kicker">Role-Matched Proof</div>
-              <h2>面向不同岗位的投递材料</h2>
+              <div class="kicker">Career Intentions</div>
+              <h2>求职意向与开源落地建议</h2>
             </div>
-            <p>同一套经历按招聘方最关心的问题重组：流程、增长、商业化和海外发布分别突出不同证据。</p>
+            <p>我希望做的不是单点剪辑或普通运营，而是把 AI 内容、数据、自动化和开源工具组合成能跑起来的业务流程。</p>
           </div>
-          <div class="resume-grid">
-            <article class="card">
-              <h3>AIGC 产品运营</h3>
-              <p>给产品/运营负责人看：内容供给、用户反馈、SOP、Prompt、AI 视频生产链路和跨团队协作。</p>
-              <div class="actions"><a class="button primary" href="./resumes/resume-aigc-product-ops.pdf" target="_blank" rel="noreferrer">查看投递版</a></div>
+          <div class="intent-grid">
+            <article class="card intent-card">
+              <span class="intent-role">优先方向</span>
+              <h3>AIGC 产品运营 / AI 工作流运营</h3>
+              <div class="intent-block">
+                <strong>我能做什么</strong>
+                <p>把业务需求拆成流程、字段、Prompt、SOP 和验收标准，推动 AI 工具从试用变成可复用的内部产品。</p>
+              </div>
+              <div class="intent-block">
+                <strong>适配 GitHub 项目</strong>
+                <div class="project-links">
+                  <a href="https://github.com/langgenius/dify" target="_blank" rel="noreferrer">Dify</a>
+                  <a href="https://github.com/FlowiseAI/Flowise" target="_blank" rel="noreferrer">Flowise</a>
+                  <a href="https://github.com/infiniflow/ragflow" target="_blank" rel="noreferrer">RAGFlow</a>
+                </div>
+              </div>
+              <div class="intent-block">
+                <strong>落地建议</strong>
+                <p>做一个“账号知识库 + 脚本生成 + 素材质检”的轻量 AI 工作台，用真实项目 SOP 验证可用性。</p>
+              </div>
             </article>
-            <article class="card">
-              <h3>AIGC 内容增长</h3>
-              <p>给内容增长团队看：200+ 产出、500w+ 流量、爆款拆解、素材库、剪辑效率和数据复盘。</p>
-              <div class="actions"><a class="button primary" href="./resumes/resume-aigc-content-growth.pdf" target="_blank" rel="noreferrer">查看投递版</a></div>
+
+            <article class="card intent-card">
+              <span class="intent-role">核心优势</span>
+              <h3>AIGC 内容增长 / AI 视频运营</h3>
+              <div class="intent-block">
+                <strong>我能做什么</strong>
+                <p>建立热点池、脚本模板、AI 视频素材生产、发布包和复盘表，让内容团队持续产出并知道为什么有效。</p>
+              </div>
+              <div class="intent-block">
+                <strong>适配 GitHub 项目</strong>
+                <div class="project-links">
+                  <a href="https://github.com/DIYgod/RSSHub" target="_blank" rel="noreferrer">RSSHub</a>
+                  <a href="https://github.com/gitroomhq/postiz-app" target="_blank" rel="noreferrer">Postiz</a>
+                  <a href="https://github.com/posthog/posthog" target="_blank" rel="noreferrer">PostHog</a>
+                </div>
+              </div>
+              <div class="intent-block">
+                <strong>落地建议</strong>
+                <p>跑一个 30 天内容增长实验：热点来源、AIGC 生产、发布时间、点击和转化统一回填。</p>
+              </div>
             </article>
-            <article class="card">
-              <h3>AI 商业化 / 增长</h3>
-              <p>给商业化负责人看：GMV、ROI、公域引流、私域承接、投流优化和内容转化。</p>
-              <div class="actions"><a class="button primary" href="./resumes/resume-ai-commercial-growth.pdf" target="_blank" rel="noreferrer">查看投递版</a></div>
+
+            <article class="card intent-card">
+              <span class="intent-role">高薪匹配</span>
+              <h3>AI 商业化 / 增长运营</h3>
+              <div class="intent-block">
+                <strong>我能做什么</strong>
+                <p>围绕 GMV、ROI、线索承接和内容转化搭建复盘口径，把“内容好不好”转成可追踪的增长指标。</p>
+              </div>
+              <div class="intent-block">
+                <strong>适配 GitHub 项目</strong>
+                <div class="project-links">
+                  <a href="https://github.com/posthog/posthog" target="_blank" rel="noreferrer">PostHog</a>
+                  <a href="https://github.com/growthbook/growthbook" target="_blank" rel="noreferrer">GrowthBook</a>
+                  <a href="https://github.com/metabase/metabase" target="_blank" rel="noreferrer">Metabase</a>
+                </div>
+              </div>
+              <div class="intent-block">
+                <strong>落地建议</strong>
+                <p>从投放素材、落地页点击、私域承接到成交做一张增长漏斗，沉淀可复制的商业化素材打法。</p>
+              </div>
             </article>
-            <article class="card">
-              <h3>海外社媒 / AI 硬件</h3>
-              <p>给出海业务团队看：消费电子品牌内容、TikTok/X/YouTube 发布链路和跨平台内容字段。</p>
-              <div class="actions"><a class="button primary" href="./resumes/resume-overseas-social-ai-hardware.pdf" target="_blank" rel="noreferrer">查看投递版</a></div>
+
+            <article class="card intent-card">
+              <span class="intent-role">出海方向</span>
+              <h3>海外社媒 / 跨境 AI 硬件运营</h3>
+              <div class="intent-block">
+                <strong>我能做什么</strong>
+                <p>把 AI 硬件或消费电子卖点翻译成 TikTok / X / YouTube 的内容栏目、发布字段和人工确认边界。</p>
+              </div>
+              <div class="intent-block">
+                <strong>适配 GitHub 项目</strong>
+                <div class="project-links">
+                  <a href="https://github.com/gitroomhq/postiz-app" target="_blank" rel="noreferrer">Postiz</a>
+                  <a href="https://github.com/n8n-io/n8n" target="_blank" rel="noreferrer">n8n</a>
+                  <a href="https://github.com/remotion-dev/remotion" target="_blank" rel="noreferrer">Remotion</a>
+                </div>
+              </div>
+              <div class="intent-block">
+                <strong>落地建议</strong>
+                <p>先做“AI 硬件 10 条海外短视频发布包”，验证标题、封面、AI disclosure 和多平台排期流程。</p>
+              </div>
             </article>
           </div>
         </div>
