@@ -201,7 +201,7 @@
         color: rgba(244, 251, 255, 0.92);
         font-size: 14px;
         font-weight: 850;
-        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 220ms ease;
       }
 
       .button.primary {
@@ -217,6 +217,144 @@
       }
 
       .button:hover { transform: translateY(-1px); border-color: rgba(143, 243, 208, 0.45); }
+
+      [data-butterfly-anchor] {
+        position: relative;
+        isolation: isolate;
+      }
+
+      [data-butterfly-anchor].butterfly-target-active {
+        border-color: rgba(114, 242, 223, 0.72);
+        box-shadow:
+          0 0 0 1px rgba(114, 242, 223, 0.16),
+          0 16px 34px rgba(114, 242, 223, 0.16);
+      }
+
+      .butterfly-field {
+        position: fixed;
+        inset: 0;
+        z-index: 9;
+        pointer-events: none;
+        overflow: hidden;
+        contain: layout paint;
+      }
+
+      .butterfly {
+        --wing: rgba(114, 242, 223, 0.84);
+        --wing-soft: rgba(184, 167, 255, 0.68);
+        --body: rgba(255, 210, 134, 0.9);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 30px;
+        height: 24px;
+        opacity: 0;
+        transform: translate3d(-80px, 120px, 0) rotate(0deg) scale(0.92);
+        transform-origin: center;
+        transition: opacity 260ms ease;
+        filter: drop-shadow(0 0 12px rgba(114, 242, 223, 0.28));
+        will-change: transform, opacity;
+      }
+
+      .butterfly::before,
+      .butterfly::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        width: 15px;
+        height: 19px;
+        border: 1px solid rgba(184, 255, 240, 0.36);
+        background:
+          radial-gradient(circle at 48% 36%, rgba(244, 251, 255, 0.72), transparent 17%),
+          linear-gradient(135deg, var(--wing), var(--wing-soft));
+        animation: wingbeat 780ms ease-in-out infinite;
+      }
+
+      .butterfly::before {
+        right: 50%;
+        border-radius: 13px 11px 5px 13px;
+        transform-origin: 100% 58%;
+      }
+
+      .butterfly::after {
+        left: 50%;
+        border-radius: 11px 13px 13px 5px;
+        transform-origin: 0 58%;
+        animation-delay: -390ms;
+      }
+
+      .butterfly i {
+        position: absolute;
+        left: 50%;
+        top: 6px;
+        width: 3px;
+        height: 16px;
+        border-radius: 999px;
+        background: var(--body);
+        transform: translateX(-50%);
+      }
+
+      .butterfly i::before,
+      .butterfly i::after {
+        content: "";
+        position: absolute;
+        top: -4px;
+        width: 8px;
+        height: 1px;
+        background: rgba(255, 210, 134, 0.62);
+      }
+
+      .butterfly i::before {
+        right: 2px;
+        transform: rotate(-34deg);
+        transform-origin: right center;
+      }
+
+      .butterfly i::after {
+        left: 2px;
+        transform: rotate(34deg);
+        transform-origin: left center;
+      }
+
+      .butterfly.two {
+        --wing: rgba(143, 243, 208, 0.78);
+        --wing-soft: rgba(148, 197, 255, 0.64);
+        width: 25px;
+        height: 20px;
+        filter: drop-shadow(0 0 10px rgba(143, 243, 208, 0.22));
+      }
+
+      .butterfly.two::before,
+      .butterfly.two::after {
+        width: 13px;
+        height: 16px;
+        animation-duration: 690ms;
+      }
+
+      .butterfly.three {
+        --wing: rgba(255, 210, 134, 0.78);
+        --wing-soft: rgba(114, 242, 223, 0.58);
+        width: 22px;
+        height: 18px;
+        filter: drop-shadow(0 0 9px rgba(255, 210, 134, 0.18));
+      }
+
+      .butterfly.three::before,
+      .butterfly.three::after {
+        width: 11px;
+        height: 15px;
+        animation-duration: 840ms;
+      }
+
+      @keyframes wingbeat {
+        0%, 100% { transform: rotateY(0deg) rotateZ(0deg); }
+        50% { transform: rotateY(58deg) rotateZ(5deg); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .butterfly-field { display: none; }
+        [data-butterfly-anchor].butterfly-target-active { box-shadow: none; }
+      }
 
       .profile { padding: 14px; }
       .profile img {
@@ -471,10 +609,19 @@
         .proof-grid, .open-grid, .intent-grid, .method-grid { grid-template-columns: 1fr; }
         .button { width: 100%; }
         .meta { flex-direction: column; }
+        .butterfly { width: 24px; height: 19px; }
+        .butterfly::before,
+        .butterfly::after { width: 12px; height: 16px; }
+        .butterfly.three { display: none; }
       }
     </style>
   </head>
   <body>
+    <div class="butterfly-field" aria-hidden="true">
+      <span class="butterfly one"><i></i></span>
+      <span class="butterfly two"><i></i></span>
+      <span class="butterfly three"><i></i></span>
+    </div>
     <header>
       <nav class="shell nav" aria-label="主导航">
         <a class="brand" href="#top" aria-label="回到首页">
@@ -503,7 +650,7 @@
           </p>
           <p class="focus-line">如果只看一个入口，建议先打开飞书作品集；如果继续判断匹配度，再看项目案例和我的工作方式。</p>
           <div class="actions">
-            <a class="button primary priority" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">打开飞书作品集</a>
+            <a class="button primary priority" data-butterfly-anchor="portfolio" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">打开飞书作品集</a>
             <a class="button" href="#cases">4 个项目案例</a>
             <a class="button" href="#method">我的工作方式</a>
             <a class="button" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">GitHub Profile</a>
@@ -554,7 +701,7 @@
               <p class="case-proof">强证明：能把 AI 视频生产拆成可执行流程，而不是只会写提示词或单条视频。</p>
               <div class="mini-tags"><span>Feishu</span><span>Flova</span><span>Prompt</span><span>发布包字段</span></div>
               <div class="actions">
-                <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">看作品集证据</a>
+                <a class="button primary" data-butterfly-anchor="case" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">看作品集证据</a>
               </div>
             </article>
 
@@ -624,7 +771,7 @@
                 `ops-codex-workflow-library` 是我把运营流程、Codex skills、投稿审核、数据源适配和部署验收系统化的公开仓库。它更接近 AI 产品运营和内部工具产品，而不是单纯内容展示页。
               </p>
             </div>
-            <a class="button primary" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">打开 GitHub Profile</a>
+            <a class="button primary" data-butterfly-anchor="github" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">打开 GitHub Profile</a>
           </div>
           <div class="repo-list">
             <article class="repo-card">
@@ -843,7 +990,7 @@
           <div class="card">
             <h3>进一步了解</h3>
             <div class="actions">
-              <a class="button primary" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">飞书作品集</a>
+              <a class="button primary" data-butterfly-anchor="contact" href="https://ucnn40m75gvx.feishu.cn/wiki/IbsjwMSsOiTjQdkxMeecwxIKnJd?from=from_copylink" target="_blank" rel="noreferrer">飞书作品集</a>
               <a class="button" href="#cases">项目案例</a>
               <a class="button" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">GitHub Profile</a>
               <a class="button" href="https://github.com/liyichao0215-pixel/ops-codex-workflow-library" target="_blank" rel="noreferrer">重点仓库</a>
@@ -861,5 +1008,112 @@
         <a class="button" href="https://github.com/liyichao0215-pixel" target="_blank" rel="noreferrer">GitHub</a>
       </div>
     </footer>
+    <script>
+      (() => {
+        const field = document.querySelector(".butterfly-field");
+        const butterflies = [...document.querySelectorAll(".butterfly")];
+        const anchors = [...document.querySelectorAll("[data-butterfly-anchor]")];
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+        if (!field || butterflies.length === 0 || anchors.length === 0 || reduceMotion.matches) {
+          field?.remove();
+          return;
+        }
+
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+        const ease = (value) => value * value * (3 - 2 * value);
+        const lerp = (from, to, progress) => from + (to - from) * progress;
+        const wingOffsets = [
+          { side: 1, x: 24, y: -12 },
+          { side: -1, x: -20, y: -10 },
+          { side: 1, x: 20, y: -16 },
+          { side: -1, x: -18, y: -12 }
+        ];
+
+        let frame = 0;
+        let points = [];
+        let activeIndex = 0;
+
+        const measure = () => {
+          const mobile = window.innerWidth < 640;
+          points = anchors.map((anchor, index) => {
+            const rect = anchor.getBoundingClientRect();
+            const offset = wingOffsets[index % wingOffsets.length];
+            const docLeft = rect.left + window.scrollX;
+            const docTop = rect.top + window.scrollY;
+            const x = mobile
+              ? docLeft + rect.width - 22
+              : docLeft + (offset.side > 0 ? rect.width + offset.x : offset.x);
+            const y = docTop + (mobile ? -16 : rect.height * 0.34 + offset.y);
+            return { anchor, x, y };
+          });
+        };
+
+        const setActiveAnchor = (nextIndex) => {
+          if (nextIndex === activeIndex && anchors[activeIndex]?.classList.contains("butterfly-target-active")) return;
+          activeIndex = nextIndex;
+          anchors.forEach((anchor, index) => {
+            anchor.classList.toggle("butterfly-target-active", index === activeIndex);
+          });
+        };
+
+        const update = () => {
+          frame = 0;
+          if (points.length === 0) measure();
+
+          const mobile = window.innerWidth < 640;
+          const now = performance.now();
+          const guideY = window.scrollY + window.innerHeight * (mobile ? 0.34 : 0.42);
+          let segment = 0;
+
+          for (let index = 0; index < points.length - 1; index += 1) {
+            if (guideY >= points[index].y && guideY <= points[index + 1].y) {
+              segment = index;
+              break;
+            }
+            if (guideY > points[index + 1].y) segment = index + 1;
+          }
+
+          const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+          const isNearBottom = window.scrollY / maxScroll > 0.88;
+          const from = isNearBottom ? points[points.length - 1] : points[clamp(segment, 0, points.length - 1)];
+          const to = isNearBottom ? from : points[clamp(segment + 1, 0, points.length - 1)] || from;
+          const travel = Math.max(1, to.y - from.y);
+          const local = isNearBottom ? 1 : ease(clamp((guideY - from.y) / travel, 0, 1));
+          const nearestIndex = isNearBottom ? points.length - 1 : (local > 0.58 && points[segment + 1] ? segment + 1 : segment);
+          setActiveAnchor(clamp(nearestIndex, 0, anchors.length - 1));
+
+          butterflies.forEach((butterfly, index) => {
+            if (mobile && index === 2) return;
+            const drift = Math.sin(now / (720 + index * 140) + index * 1.7);
+            const docX = lerp(from.x, to.x, local) + drift * (mobile ? 8 : 15) + index * (mobile ? -8 : 12);
+            const docY = lerp(from.y, to.y, local) + Math.cos(now / (620 + index * 120) + index) * (mobile ? 5 : 10) + index * 12;
+            const x = clamp(docX - window.scrollX, 18, window.innerWidth - 26);
+            const y = clamp(docY - window.scrollY, mobile ? 94 : 86, window.innerHeight - 58);
+            const rotate = clamp((to.x - from.x) * 0.035 + drift * 10, -22, 22);
+            const scale = mobile ? 0.82 - index * 0.04 : 0.95 - index * 0.08;
+
+            butterfly.style.opacity = index === 2 ? "0.62" : "0.82";
+            butterfly.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotate}deg) scale(${scale})`;
+          });
+        };
+
+        const requestUpdate = () => {
+          if (frame) return;
+          frame = window.requestAnimationFrame(update);
+        };
+
+        measure();
+        update();
+        window.addEventListener("scroll", requestUpdate, { passive: true });
+        window.addEventListener("resize", () => {
+          measure();
+          requestUpdate();
+        });
+        reduceMotion.addEventListener("change", () => {
+          if (reduceMotion.matches) field.remove();
+        });
+      })();
+    </script>
   </body>
 </html>
