@@ -1,0 +1,4 @@
+interface:
+  display_name: "Flova AI Communicator"
+  short_description: "面向 Flova 的项目沟通与官方 Skill 路由"
+  default_prompt: "Use $flova-ai-communicator to write a Flova project prompt that respects project memory and selects suitable official Skills."

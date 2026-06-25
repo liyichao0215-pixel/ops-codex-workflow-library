@@ -17,7 +17,7 @@
 4. 选择这个文件夹：
 
 ```text
-/Users/liyichao/Documents/skill产出与运营链接/flova-skill-selector-extension
+本仓库/个性化flovaai库/chrome-extension
 ```
 
 ## 使用
