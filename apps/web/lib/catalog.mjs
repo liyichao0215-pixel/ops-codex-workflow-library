@@ -7,7 +7,8 @@ function approvedAssets(assets) {
 }
 
 function skillUrl(baseUrl, asset) {
-  return `${cleanBaseUrl(baseUrl)}/skills/${asset.id}/SKILL.md`;
+  const path = asset.skillPath || `skills/${asset.id}/SKILL.md`;
+  return `${cleanBaseUrl(baseUrl)}/${path}`;
 }
 
 function assetUrl(baseUrl, asset) {
@@ -16,6 +17,10 @@ function assetUrl(baseUrl, asset) {
 
 function array(value) {
   return Array.isArray(value) ? value : [];
+}
+
+function hasInstallableSkill(asset) {
+  return Boolean(asset.skillPath) || ['SOP', 'Skill 草稿', '脚本', '岗位方法', '提示词包'].includes(asset.assetType);
 }
 
 export function buildCodexCatalog(assets, options = {}) {
@@ -40,7 +45,7 @@ export function buildCodexCatalog(assets, options = {}) {
       summary: asset.summary,
       detailUrl: assetUrl(baseUrl, asset),
       skill: {
-        available: ['SOP', 'Skill 草稿', '脚本', '岗位方法', '提示词包'].includes(asset.assetType),
+        available: hasInstallableSkill(asset),
         installUrl: skillUrl(baseUrl, asset),
         installTarget: '$CODEX_HOME/skills',
       },
@@ -64,9 +69,11 @@ export function buildCodexInstallPrompt(asset, options = {}) {
     `解决任务：${array(asset.tasks).join('、')}`,
     `Catalog: ${catalogUrl}`,
     `Skill: ${skillUrl(baseUrl, asset)}`,
+    asset.packagePath ? `Package: ${cleanBaseUrl(baseUrl)}/${asset.packagePath}` : '',
+    asset.chromeExtensionPath ? `Chrome extension: ${cleanBaseUrl(baseUrl)}/${asset.chromeExtensionPath}` : '',
     '先确认我的岗位、任务和输入材料是否匹配；如果匹配，把 Skill 安装到 Codex 本地 skills 目录，并告诉我如何触发使用。',
     '如果发现包含敏感信息、路径不适合当前项目、或人工边界不清楚，先停下来提醒我。',
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 }
 
 export function buildCodexSubmitPrompt() {

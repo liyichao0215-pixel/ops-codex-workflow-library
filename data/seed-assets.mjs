@@ -24,6 +24,7 @@ export const workflowAssets = [
     feishuFields: ['日期', '账号', '每日视频序号', '生产状态', '下载/验收状态', '手动接管文件'],
     updatedAt: '2026-06-07',
     owner: '李忆超',
+    primaryCategory: '工作 SOP',
   },
   {
     id: 'daily-video-task-generator',
@@ -50,6 +51,7 @@ export const workflowAssets = [
     feishuFields: ['日期', '账号', '每日视频序号', '剧情目标', '镜头结构', 'Flova生成指令'],
     updatedAt: '2026-06-03',
     owner: '李忆超',
+    primaryCategory: '自动化流程',
   },
   {
     id: 'account-expression-memory-loop',
@@ -76,6 +78,7 @@ export const workflowAssets = [
     feishuFields: ['账号', '表达约束', '禁用点', '质量观察', '审核风险', '生产边界'],
     updatedAt: '2026-06-02',
     owner: '李忆超',
+    primaryCategory: '工作 SOP',
   },
   {
     id: 'weekly-report-polish',
@@ -101,6 +104,7 @@ export const workflowAssets = [
     feishuFields: ['本周目标', '完成情况', '复盘结论', '下周规划', '负责人'],
     updatedAt: '2026-06-02',
     owner: '李忆超',
+    primaryCategory: '提示词包',
   },
   {
     id: 'japan-matrix-audience-gate',
@@ -126,6 +130,7 @@ export const workflowAssets = [
     feishuFields: ['账号', '主题', '受众判断', '剧情方向', '是否进入剧情生成'],
     updatedAt: '2026-05-29',
     owner: '李忆超',
+    primaryCategory: '工作 SOP',
   },
   {
     id: 'capcut-edit-decision-list',
@@ -151,6 +156,7 @@ export const workflowAssets = [
     feishuFields: ['选题', '脚本链接', '素材状态', '剪辑清单', '字幕状态'],
     updatedAt: '2026-05-28',
     owner: '李忆超',
+    primaryCategory: '工作 SOP',
   },
   {
     id: 'codex-skill-retrospective',
@@ -176,6 +182,7 @@ export const workflowAssets = [
     feishuFields: ['资产标题', '岗位', '工具', '卡点', '复用步骤', '是否可生成Skill', '审核状态'],
     updatedAt: '2026-06-08',
     owner: '李忆超',
+    primaryCategory: '可安装 Skill',
   },
   {
     id: 'ops-asset-redaction-review',
@@ -262,6 +269,36 @@ export const workflowAssets = [
     skillPath: 'skills/feishu-schema-change-checklist/SKILL.md',
   },
   {
+    id: 'personalized-flovaai-kit',
+    title: '个性化 FlovaAI 库：全 Skill 搜索与项目沟通路由',
+    status: '已审核',
+    visibility: '内部',
+    role: 'AI视频流程型运营',
+    assetType: '工具/插件',
+    tools: ['Codex', 'FlovaAI', 'Chrome', 'GitHub'],
+    tasks: ['Flova Skill 搜索', '公开 Skill 路由', '项目提示词准备', '本地插件部署'],
+    outcomes: ['Chrome 全 Skill 搜索插件', 'Codex FlovaAI 沟通 skill', '朋友可复用安装说明'],
+    painPoints: ['新项目找不到公开 Skill', '公开 Skill 和我的 Skill 分散', '插件和提示词逻辑不容易复用'],
+    tags: ['FlovaAI', 'Chrome 插件', 'Codex Skill', '公开 Skill', '项目路由'],
+    summary: '把 Flova 项目页里的公开 Skill / 我的 Skill 搜索能力和 Codex 的 FlovaAI 沟通路由打包成独立工作库，方便当前账号和同事本地部署复用。',
+    inputs: ['Flova 登录账号', 'Chrome 开发者模式', 'Codex 本地 skills 目录'],
+    workflow: [
+      '在 Chrome 扩展程序页面加载 个性化flovaai库/chrome-extension。',
+      '在 Codex 本地安装 codex-skills/flova-ai-communicator。',
+      '打开任意 Flova 项目页，使用“全 Skill”搜索公开 Skill 和我的 Skill。',
+      '用 flova-ai-communicator 选择官方 Skill，并生成只到独立素材边界的项目提示词。',
+    ],
+    failureModes: ['不要把私人账号表达记忆、登录态、凭证或私有项目素材打包给同事。'],
+    boundary: '只打包通用插件、官方公开 Skill catalog 和沟通路由；不包含私人账号记忆、私有项目内容和认证信息。',
+    feishuFields: ['资产标题', '工具路径', '适用账号', '安装状态', '验证结果'],
+    updatedAt: '2026-06-25',
+    owner: '李忆超',
+    primaryCategory: '工具/插件',
+    packagePath: '个性化flovaai库/README.md',
+    skillPath: '个性化flovaai库/codex-skills/flova-ai-communicator/SKILL.md',
+    chromeExtensionPath: '个性化flovaai库/chrome-extension',
+  },
+  {
     id: 'unreviewed-public-export',
     title: '公开版导出候选池',
     status: '待审核',
@@ -281,6 +318,7 @@ export const workflowAssets = [
     feishuFields: [],
     updatedAt: '2026-06-08',
     owner: '待定',
+    primaryCategory: '复盘卡点',
   },
 ];
 
@@ -288,5 +326,5 @@ export const syncState = {
   source: '飞书多维表格',
   approvedCount: workflowAssets.filter((asset) => asset.status === '已审核').length,
   pendingCount: workflowAssets.filter((asset) => asset.status !== '已审核').length,
-  lastSync: '2026-06-08 18:30',
+  lastSync: '2026-06-25 18:30',
 };
