@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Flova 全 Skill 搜索",
-  "version": "0.1.1",
-  "description": "在 Flova 项目页搜索公开 Skill 和我的 Skill，并插入到当前对话输入框。",
+  "name": "Flova 主/辅助 Skill 选择器",
+  "version": "0.2.1",
+  "description": "在 Flova 项目页搜索公开 Skill 和我的 Skill，组合一个主 Skill 与多个辅助 Skill 后插入到对话输入框。",
   "permissions": [],
   "host_permissions": [
     "https://www.flova.ai/*",

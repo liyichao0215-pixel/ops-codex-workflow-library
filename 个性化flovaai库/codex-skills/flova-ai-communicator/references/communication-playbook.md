@@ -26,7 +26,7 @@ If project evidence is missing and the task depends on it, write a prompt that a
 
 优先参考的官方 Skill：
 - 主 Skill：「{primary skill}」：用于 {workflow reason}
-- 辅助 Skill：「{secondary skill}」：只用于 {quality/style reason}
+- 辅助 Skill：「{auxiliary skill 1}」「{auxiliary skill 2}」：只转成质量、风格、结构或检查清单，不替代主 Skill
 
 必须保留：
 - {project anchor}
@@ -105,5 +105,6 @@ Do not call a run done just because a prompt was created, the input cleared, or 
 - For matrix-account production, default to standalone video materials.
 - Do not enter timeline/composite/export/download unless the user explicitly asks.
 - When using public Flova Skills, write "参考工作流" rather than "照搬模板".
+- Use only one primary Skill. Multiple auxiliary Skills are acceptable when they clearly help with quality, style, structure, or review, but describe them as references/checklists rather than extra active project Skills.
 - For director or IP-inspired Skills, translate into original camera language, color, motion, staging, and mood.
 - If content safety or IP risk appears, soften the concrete identity first: remove names, logos, exact costumes, trademarks, and named moves.

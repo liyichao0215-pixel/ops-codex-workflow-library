@@ -5,7 +5,7 @@ description: Primary routing and communication skill for FlovaAI projects. Use f
 
 # Flova AI Communicator
 
-Use this skill as the first FlovaAI project router and communicator. Communicate with Flova as a project Agent, not as a generic text-to-video form. Flova remembers project context, intermediate assets, user choices, and reusable Skills; good prompts should preserve that memory, route to suitable official Skills, and define where the run should stop.
+Use this skill as the first FlovaAI project router and communicator. Communicate with Flova as a project Agent, not as a generic text-to-video form. Flova remembers project context, intermediate assets, user choices, and reusable Skills; good prompts should preserve that memory, route to suitable official Skills, and define where the run should stop. When a task mentions Skill usage, decide one primary Skill for the main workflow and optional auxiliary Skills for quality, style, structure, or checks.
 
 ## Load The Right Reference
 
@@ -55,7 +55,8 @@ Start here for FlovaAI project selection and prompt writing. Use this skill to c
 
 3. Choose official Skills as support:
    - Use one primary Skill for the workflow shape.
-   - Add one secondary Skill only for quality, such as lighting or POV.
+   - Add auxiliary Skills only for quality, style, structure, or checks, such as lighting, POV, pacing, copy, storyboard, or asset review.
+   - Treat auxiliary Skills as prompt/checklist references, not as extra active project Skills.
    - Treat director/IP/aesthetic Skills as camera, composition, color, pacing, and mood references only.
 
 4. Write the Flova message with explicit sections:
@@ -108,3 +109,4 @@ Use this shape when preparing text for Flova:
 - Do not claim live Flova project content was learned unless it was actually read.
 - Do not copy official IP names, costumes, logos, exact frames, exact dialogue, or brand assets; translate style into original visual language.
 - For existing specialized work, layer this skill under the more specific Flova skill: reference remix, IP cosplay duel, or download archive.
+- If the user says "优先启动 skill", "用主辅 skill", or "帮我选主 skill 和辅助 skill", start with this skill, then produce a primary/auxiliary Skill choice and a paste-ready Flova message.
