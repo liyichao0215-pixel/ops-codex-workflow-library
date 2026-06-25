@@ -13,6 +13,7 @@ apps/web    静态前端
 apps/api    Node + SQLite 后端
 data        种子资产
 skills      可安装或可复用的 Codex skill
+extensions  浏览器增强工具
 docs        产品、部署、内测和审核说明
 scripts     备份和导出脚本
 ```

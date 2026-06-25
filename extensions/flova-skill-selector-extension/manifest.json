@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Flova 全 Skill 搜索",
+  "version": "0.1.1",
+  "description": "在 Flova 项目页搜索公开 Skill 和我的 Skill，并插入到当前对话输入框。",
+  "permissions": [],
+  "host_permissions": [
+    "https://www.flova.ai/*",
+    "https://service.flova.ai/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.flova.ai/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "page-bridge.js"
+      ],
+      "matches": [
+        "https://www.flova.ai/*"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+# Flova 全 Skill 搜索
+
+这是一个本地 Chrome 增强插件，用于 Flova 项目页：
+
+- 搜索当前账号的“我的 Skill”
+- 搜索 Flova 公开 Skill
+- 一键把选中的 Skill 插入当前项目的对话输入框
+- 可把公开 Skill 保存并启用到当前账号
+
+它不会自动发送 Flova 对话，也不会自动生成视频。
+
+## 安装
+
+1. 打开 Chrome 的扩展程序页面：`chrome://extensions/`
+2. 打开“开发者模式”
+3. 点击“加载已解压的扩展程序”
+4. 选择这个文件夹：
+
+```text
+/Users/liyichao/Documents/skill产出与运营链接/flova-skill-selector-extension
+```
+
+## 使用
+
+打开任意 Flova 项目页后，右下角会出现“全 Skill”按钮。
+
+- 搜索后点“插入”：只把 Skill 插入输入框，不会提交。
+- 点“保存启用”：把公开 Skill 保存到当前账号的“我的 Skill”并启用，之后其他新项目也能使用。
+
+## 测试记录
+
+2026-06-25 在 Flova 项目页完成测试：
+
+- 项目页可以出现“全 Skill”入口。
+- 可以读取“我的 Skill”和公开 Skill。
+- 可以搜索到“电影布光大师”。
+- 可以把 Skill 插入 Flova 输入框，插入后不会自动发送。
+- 测试插入后已清空输入框。
+
+未自动测试“保存启用”，因为它会真实修改当前 Flova 账号的 Skill 库。
