@@ -123,3 +123,42 @@ test("extracts nested asset items from reference menu shapes", () => {
     ["Ava", "办公室"],
   );
 });
+
+test("parses cockpit dispatch package text for plugin import", () => {
+  const text = [
+    "给 Flova 插件导入：",
+    "```flova-dispatch-plan",
+    JSON.stringify({
+      account: "@ytgg1010",
+      projectUrl: "https://www.flova.ai/zh-CN/project/?id=27331fd1fdba4fc5aa0c44cb6b448541",
+      workflowStage: "material-execution",
+      promptDraft: "请生成一套门廊浣熊救援视频素材。",
+      preferredSkill: { name: "故事驱动型视频" },
+      auxSkills: [{ name: "电影布光大师" }, "视频拉片复刻"],
+      assetHints: ["Element_Ava_Homeowner", "Element_KungFu_Raccoon_Mischief"],
+      executionBoundary: {
+        pluginInsertOnly: true,
+        humanSendRequired: true,
+        autoSend: false,
+        autoGenerate: false,
+        spendCredits: false,
+      },
+    }),
+    "```",
+  ].join("\n");
+
+  const parsed = utils.parseDispatchPlanText(text);
+  assert.equal(parsed.account, "@ytgg1010");
+  assert.equal(parsed.preferredSkill.name, "故事驱动型视频");
+  assert.deepEqual(JSON.parse(JSON.stringify(parsed.auxSkills.map((skill) => skill.name))), [
+    "电影布光大师",
+    "视频拉片复刻",
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(parsed.assetHints)), [
+    "Element_Ava_Homeowner",
+    "Element_KungFu_Raccoon_Mischief",
+  ]);
+  assert.match(parsed.promptDraft, /门廊浣熊救援/);
+  assert.equal(parsed.executionBoundary.humanSendRequired, true);
+  assert.equal(parsed.executionBoundary.autoSend, false);
+});

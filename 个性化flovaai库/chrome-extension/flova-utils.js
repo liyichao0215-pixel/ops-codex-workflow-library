@@ -136,11 +136,71 @@
     return countNativeAssetMarkers(after.rawText) > countNativeAssetMarkers(before.rawText);
   }
 
+  function normalizeSkillReference(value) {
+    if (typeof value === "string") {
+      return { id: "", name: normalizeString(value) };
+    }
+    if (!value || typeof value !== "object") {
+      return { id: "", name: "" };
+    }
+    return {
+      id: normalizeString(firstValue(value, ["skill_id", "skillId", "id"])),
+      name: normalizeString(firstValue(value, ["skill_name", "skillName", "name", "title"])),
+    };
+  }
+
+  function normalizeExecutionBoundary(value = {}) {
+    const boundary = value && typeof value === "object" ? value : {};
+    return {
+      pluginInsertOnly: boundary.pluginInsertOnly !== false,
+      humanSendRequired: boundary.humanSendRequired !== false,
+      autoSend: boundary.autoSend === true,
+      autoGenerate: boundary.autoGenerate === true,
+      spendCredits: boundary.spendCredits === true,
+      summary:
+        normalizeString(boundary.summary) ||
+        "插件只插入，不发送；不自动生成，不扣积分；由用户在 Flova 网页人工确认发送。",
+    };
+  }
+
+  function normalizeDispatchPlan(raw = {}) {
+    const source = raw && typeof raw === "object" ? raw : {};
+    const auxSource = Array.isArray(source.auxSkills) ? source.auxSkills : [];
+    const assetSource = Array.isArray(source.assetHints) ? source.assetHints : [];
+    return {
+      account: normalizeString(source.account),
+      projectId: normalizeString(source.projectId),
+      projectUrl: normalizeString(source.projectUrl),
+      workflowStage: normalizeString(source.workflowStage || "material-execution"),
+      promptDraft: normalizeString(source.promptDraft),
+      preferredSkill: normalizeSkillReference(source.preferredSkill),
+      auxSkills: auxSource.map(normalizeSkillReference).filter((skill) => skill.id || skill.name),
+      assetHints: assetSource.map(normalizeString).filter(Boolean),
+      executionBoundary: normalizeExecutionBoundary(source.executionBoundary),
+    };
+  }
+
+  function parseDispatchPlanText(text) {
+    const source = String(text || "").trim();
+    if (!source) throw new Error("请先粘贴 Flova 四层执行包。");
+    const fenced = source.match(/```(?:flova-dispatch-plan|json)?\s*([\s\S]*?)```/i);
+    const jsonText = (fenced ? fenced[1] : source).trim();
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (error) {
+      throw new Error(`无法解析 Flova 四层执行包 JSON：${error.message}`);
+    }
+    return normalizeDispatchPlan(parsed.dispatchPlan || parsed);
+  }
+
   return {
     normalizeAssetForNativeMention,
     extractAssetItems,
     buildNativeMentionPlan,
     isSyntheticAssetReferenceText,
     hasNewNativeAssetMention,
+    normalizeDispatchPlan,
+    parseDispatchPlanText,
   };
 });

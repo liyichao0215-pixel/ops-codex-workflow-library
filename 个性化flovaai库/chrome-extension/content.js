@@ -23,6 +23,10 @@
     assets: [],
     selectedAssetIds: new Set(),
     composingSearch: false,
+    dispatchImportOpen: false,
+    dispatchImportText: "",
+    dispatchPlan: null,
+    importedPrompt: "",
     message: "点击刷新后读取公开 Skill、我的 Skill，或切到资产 @。",
   };
 
@@ -207,7 +211,8 @@
       state.mySkills = mySkills;
       state.publicSkills = publicSkills;
       state.loaded = true;
-      state.message = `已读取：我的 ${mySkills.length} 个，公开 ${publicSkills.length} 个。`;
+      const matched = reconcileDispatchPlanSelection();
+      state.message = `已读取：我的 ${mySkills.length} 个，公开 ${publicSkills.length} 个。${matched.skillMatches ? ` 已匹配执行包 Skill ${matched.skillMatches} 个。` : ""}`;
     } catch (error) {
       state.message = error?.message || String(error);
     } finally {
@@ -268,7 +273,8 @@
     try {
       state.assets = await loadAssets();
       state.assetsLoaded = true;
-      state.message = `已读取资产 ${state.assets.length} 个。选择后会让 Flova 原生 @ 来插入。`;
+      const matched = reconcileDispatchPlanSelection();
+      state.message = `已读取资产 ${state.assets.length} 个。选择后会让 Flova 原生 @ 来插入。${matched.assetMatches ? ` 已匹配执行包资产 ${matched.assetMatches} 个。` : ""}`;
     } catch (error) {
       state.message = `资产库读取失败：${error?.message || String(error)}`;
     } finally {
@@ -298,6 +304,108 @@
 
   function assetById(id) {
     return allAssets().find((asset) => asset.id === id || asset.materialId === id || asset.name === id) || null;
+  }
+
+  function assetKey(asset) {
+    return asset.id || asset.materialId || asset.name;
+  }
+
+  function compactMatchText(value) {
+    return normalizeSearchText(value).replace(/\s+/g, "");
+  }
+
+  function findSkillByReference(reference = {}) {
+    if (reference.id) {
+      const direct = skillById(reference.id);
+      if (direct) return direct;
+    }
+    const target = compactMatchText(reference.name);
+    if (!target) return null;
+    const skills = allSkills();
+    return (
+      skills.find((skill) => compactMatchText(skill.name) === target) ||
+      skills.find((skill) => {
+        const name = compactMatchText(skill.name);
+        return Boolean(name) && (name.includes(target) || target.includes(name));
+      }) ||
+      null
+    );
+  }
+
+  function findAssetByHint(hint) {
+    const target = compactMatchText(hint);
+    if (!target) return null;
+    return (
+      allAssets().find((asset) => {
+        const id = compactMatchText(asset.id || asset.materialId);
+        const name = compactMatchText(asset.name);
+        return id === target || name === target;
+      }) ||
+      allAssets().find((asset) => {
+        const haystack = compactMatchText(`${asset.name} ${asset.description} ${asset.kind} ${asset.id} ${asset.materialId}`);
+        const name = compactMatchText(asset.name);
+        return haystack.includes(target) || (Boolean(name) && target.includes(name));
+      }) ||
+      null
+    );
+  }
+
+  function reconcileDispatchPlanSelection() {
+    const plan = state.dispatchPlan;
+    const result = { skillMatches: 0, assetMatches: 0 };
+    if (!plan) return result;
+
+    const mainSkill = findSkillByReference(plan.preferredSkill || {});
+    if (mainSkill) {
+      state.mainSkillId = mainSkill.id;
+      state.auxSkillIds.delete(mainSkill.id);
+      result.skillMatches += 1;
+    } else if (plan.preferredSkill?.name && !state.query) {
+      state.query = plan.preferredSkill.name;
+    }
+
+    for (const reference of plan.auxSkills || []) {
+      if (state.auxSkillIds.size >= AUX_LIMIT) break;
+      const skill = findSkillByReference(reference);
+      if (!skill || skill.id === state.mainSkillId || state.auxSkillIds.has(skill.id)) continue;
+      state.auxSkillIds.add(skill.id);
+      result.skillMatches += 1;
+    }
+
+    const hints = plan.assetHints || [];
+    for (const hint of hints) {
+      if (state.selectedAssetIds.size >= ASSET_LIMIT) break;
+      const asset = findAssetByHint(hint);
+      if (!asset) continue;
+      state.selectedAssetIds.add(assetKey(asset));
+      result.assetMatches += 1;
+    }
+    if (hints.length && !result.assetMatches && !state.assetQuery) state.assetQuery = hints[0];
+    return result;
+  }
+
+  function applyDispatchImportText() {
+    const plan = utils.parseDispatchPlanText(state.dispatchImportText);
+    state.dispatchPlan = plan;
+    state.importedPrompt = plan.promptDraft || "";
+    if (plan.assetHints?.length) {
+      state.mode = "assets";
+      state.assetQuery = plan.assetHints[0] || state.assetQuery;
+    } else {
+      state.mode = "skills";
+    }
+    const matched = reconcileDispatchPlanSelection();
+    state.dispatchImportOpen = false;
+    const parts = [
+      `已导入 Flova 四层执行包${plan.account ? `：${plan.account}` : ""}`,
+      matched.skillMatches ? `匹配 Skill ${matched.skillMatches} 个` : "",
+      matched.assetMatches ? `匹配资产 ${matched.assetMatches} 个` : "",
+      plan.assetHints?.length && !matched.assetMatches ? "资产关键词已填入，请刷新或手动选择资产" : "",
+    ].filter(Boolean);
+    state.message = `${parts.join("；")}。插件仍只插入，不发送。`;
+    if (!state.loaded && !state.loading) refreshSkills();
+    if (plan.assetHints?.length && !state.assetsLoaded && !state.assetsLoading) refreshAssets();
+    render();
   }
 
   function auxiliaryScore(skill) {
@@ -701,9 +809,10 @@
     const selectedAssets = Array.from(state.selectedAssetIds)
       .map((id) => assetById(id))
       .filter(Boolean);
+    const dispatchPrompt = state.importedPrompt || state.dispatchPlan?.promptDraft || "";
 
-    if (!mainSkill && auxSkills.length === 0 && selectedAssets.length === 0) {
-      state.message = "先选择主 Skill、辅助 Skill，或至少选择一个资产。";
+    if (!mainSkill && auxSkills.length === 0 && selectedAssets.length === 0 && !dispatchPrompt) {
+      state.message = "先选择主 Skill、辅助 Skill、资产，或导入一个带提示词的执行包。";
       render();
       return;
     }
@@ -728,13 +837,15 @@
     if (mainSkill) appendSkillCapsule(editor, mainSkill);
     const auxPrompt = buildAuxiliaryPrompt(auxSkills, mainSkill);
     if (auxPrompt) appendPlainText(editor, auxPrompt);
+    if (dispatchPrompt) appendPlainText(editor, `${auxPrompt || mainSkill || selectedAssets.length ? "\n\n" : ""}${dispatchPrompt}`);
     placeCaretAtEnd(editor);
     notifyEditor(editor);
 
     const mainText = mainSkill ? `主：${mainSkill.name}` : "无主 Skill";
     const auxText = auxSkills.length ? `辅助 ${auxSkills.length} 个` : "无辅助";
     const assetText = selectedAssets.length ? `资产 @ ${selectedAssets.length} 个` : "无资产";
-    state.message = `已插入 ${mainText}，${auxText}，${assetText}。还没有发送，确认后再运行。`;
+    const promptText = dispatchPrompt ? "含执行包提示词" : "无执行包提示词";
+    state.message = `已插入 ${mainText}，${auxText}，${assetText}，${promptText}。还没有发送，确认后再运行。`;
     render();
   }
 
@@ -781,7 +892,9 @@
     state.mainSkillId = "";
     state.auxSkillIds.clear();
     state.selectedAssetIds.clear();
-    state.message = "已清空主/辅助 Skill 和资产选择。";
+    state.dispatchPlan = null;
+    state.importedPrompt = "";
+    state.message = "已清空主/辅助 Skill、资产选择和导入提示词。";
     render();
   }
 
@@ -868,6 +981,40 @@
       .fss-close { width: 30px; height: 30px; }
       .fss-refresh { min-height: 30px; padding: 0 10px; }
       .fss-controls { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+      .fss-dispatch-import {
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid rgba(56,189,248,.24);
+        border-radius: 8px;
+        background: rgba(14,165,233,.08);
+      }
+      .fss-dispatch-text {
+        width: 100%;
+        min-height: 96px;
+        resize: vertical;
+        box-sizing: border-box;
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 8px;
+        background: rgba(255,255,255,.06);
+        color: #fff;
+        outline: none;
+        padding: 9px 10px;
+        font-size: 12px;
+        line-height: 1.45;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+      .fss-dispatch-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+      .fss-dispatch-note {
+        margin-top: 7px;
+        color: rgba(248,250,252,.62);
+        font-size: 12px;
+        line-height: 1.45;
+      }
       .fss-mode-tabs {
         display: flex;
         gap: 8px;
@@ -1072,6 +1219,19 @@
       } else if (action === "refresh") {
         if (state.mode === "assets") refreshAssets();
         else refreshSkills();
+      } else if (action === "toggle-import") {
+        state.dispatchImportOpen = !state.dispatchImportOpen;
+        render();
+      } else if (action === "apply-dispatch") {
+        try {
+          applyDispatchImportText();
+        } catch (error) {
+          state.message = error?.message || String(error);
+          render();
+        }
+      } else if (action === "cancel-dispatch") {
+        state.dispatchImportOpen = false;
+        render();
       } else if (action === "tab") {
         state.tab = target.getAttribute("data-tab") || "all";
         render();
@@ -1134,9 +1294,17 @@
           })
           .join("")
       : `<span class="fss-placeholder">资产会通过 Flova 原生 @ 插入</span>`;
+    const plan = state.dispatchPlan;
+    const dispatchHtml = plan
+      ? `<span class="fss-chip fss-chip-asset"><span class="fss-chip-name">${escapeHtml(plan.account || plan.workflowStage || "已导入执行包")}</span></span><span class="fss-placeholder">${escapeHtml(truncateText(plan.promptDraft || "无正文提示词", 58))}</span>`
+      : `<span class="fss-placeholder">可粘贴驾驶舱 flova-dispatch-plan</span>`;
 
     return `
       <div class="fss-stack">
+        <div class="fss-stack-row">
+          <div class="fss-stack-label">执行包</div>
+          <div class="fss-chip-list">${dispatchHtml}</div>
+        </div>
         <div class="fss-stack-row">
           <div class="fss-stack-label">主 Skill</div>
           <div class="fss-chip-list">${mainHtml}</div>
@@ -1229,6 +1397,16 @@
       .join("");
     const rows = isAssetMode ? assetRows : skillRows;
     const refreshing = isAssetMode ? state.assetsLoading : state.loading;
+    const dispatchImportHtml = state.dispatchImportOpen
+      ? `<div class="fss-dispatch-import">
+          <textarea class="fss-dispatch-text" placeholder="粘贴驾驶舱里的 flova-dispatch-plan 代码块">${escapeHtml(state.dispatchImportText)}</textarea>
+          <div class="fss-dispatch-actions">
+            <button class="fss-action fss-action-main" data-fss-action="apply-dispatch" type="button">导入执行包</button>
+            <button class="fss-action" data-fss-action="cancel-dispatch" type="button">取消</button>
+          </div>
+          <div class="fss-dispatch-note">导入后会自动预选主 Skill、辅助 Skill、资产关键词和正文提示词；插件仍只插入，不发送。</div>
+        </div>`
+      : "";
 
     root.innerHTML = `
       <button class="fss-launcher" data-fss-action="open">Skill / 原生 @</button>
@@ -1236,11 +1414,13 @@
         <div class="fss-header">
           <div class="fss-title">Skill 与原生 @ 助手</div>
           <div class="fss-header-actions">
+            <button class="fss-refresh" data-fss-action="toggle-import">导入执行包</button>
             <button class="fss-refresh" data-fss-action="refresh" ${refreshing ? "disabled" : ""}>刷新</button>
             <button class="fss-close" data-fss-action="close" aria-label="关闭">x</button>
           </div>
         </div>
         <div class="fss-controls">
+          ${dispatchImportHtml}
           <div class="fss-mode-tabs">
             ${modeButton("skills", "Skill")}
             ${modeButton("assets", "资产 @")}
@@ -1264,6 +1444,10 @@
       </section>
     `;
     const search = root.querySelector(".fss-search");
+    const dispatchText = root.querySelector(".fss-dispatch-text");
+    dispatchText?.addEventListener("input", (event) => {
+      state.dispatchImportText = event.target.value;
+    });
     const rerenderSearch = (inputValue) => {
       if (state.mode === "assets") state.assetQuery = inputValue;
       else state.query = inputValue;
