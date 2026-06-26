@@ -1101,6 +1101,9 @@
           )
           .join("")
       : `<span class="fss-placeholder">可选择多个辅助 Skill</span>`;
+    const selectedAssets = Array.from(state.selectedAssetIds)
+      .map((id) => assetById(id))
+      .filter(Boolean);
     const assetHtml = selectedAssets.length
       ? selectedAssets
           .map((asset) => {
