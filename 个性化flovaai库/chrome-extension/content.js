@@ -249,19 +249,72 @@
       .filter((asset) => asset.id);
   }
 
+  function mergeAssetCards(base, next) {
+    return {
+      ...base,
+      ...next,
+      id: next.id || base.id,
+      materialId: next.materialId || base.materialId,
+      assetGroupId: next.assetGroupId || base.assetGroupId,
+      name: next.name && next.name !== "未命名资产" ? next.name : base.name,
+      description: next.description || base.description,
+      kind: next.kind || base.kind,
+      thumbnail: next.thumbnail || base.thumbnail,
+      thumbnailUrls: Array.from(new Set([...(base.thumbnailUrls || []), ...(next.thumbnailUrls || [])])),
+      resourceId: next.resourceId || base.resourceId,
+      resourceIds: Array.from(new Set([...(base.resourceIds || []), ...(next.resourceIds || [])])),
+      mediaType: next.mediaType || base.mediaType,
+      materialType: next.materialType || base.materialType,
+      category: next.category || base.category,
+      coverUrl: next.coverUrl || base.coverUrl,
+      resourceUrl: next.resourceUrl || base.resourceUrl,
+      resourceType: next.resourceType || base.resourceType,
+      status: next.status || base.status,
+      raw: { ...(base.raw || {}), ...(next.raw || {}) },
+    };
+  }
+
+  function dedupeAssets(assets) {
+    const byId = new Map();
+    for (const asset of assets) {
+      const key = asset.assetGroupId || asset.materialId || asset.id;
+      if (!key) continue;
+      byId.set(key, byId.has(key) ? mergeAssetCards(byId.get(key), asset) : asset);
+    }
+    return Array.from(byId.values());
+  }
+
   async function loadAssets() {
-    const listResponse = await bridgeApiAny([
-      {
-        path: "/asset_library/reference_menu?locale=zh-CN&page_size=100&keyword=",
-      },
-      {
-        path: "/asset_library/list?locale=zh-CN&page=1&page_size=100",
-      },
-      {
-        path: "/asset_library/list?locale=zh-CN&page_size=100",
-      },
-    ]);
-    return normalizeAssetsFromData(listResponse.data);
+    const requests = [
+      "/asset_library/list?tab_type=media&page=1&page_size=100",
+      "/asset_library/list?tab_type=asset_resource&page=1&page_size=100",
+      "/asset_library/list?tab_type=asset&page=1&page_size=100",
+      "/asset_library/list?tab_type=resource&page=1&page_size=100",
+      "/asset_library/list?tab_type=storyboard&page=1&page_size=100",
+      "/asset_library/list?tab_type=document&page=1&page_size=100",
+      "/asset_library/list?tab_type=person&page=1&page_size=100",
+      "/asset_library/reference_menu?page_size=100",
+      "/asset_library/reference_menu?category=asset&page_size=100",
+      "/asset_library/reference_menu?category=resource&page_size=100",
+      "/asset_library/reference_menu?category=document&page_size=100",
+      "/asset_library/reference_menu?category=person&page_size=100",
+      "/asset_library/reference_menu?category=shot&page_size=100",
+      "/asset_library/reference_menu?category=element&page_size=100",
+      "/asset_library/reference_menu?category=audio_layer&page_size=100",
+    ];
+    const assets = [];
+    const errors = [];
+    const responses = await Promise.allSettled(requests.map((path) => bridgeApi(path)));
+    for (const response of responses) {
+      if (response.status === "fulfilled") {
+        assets.push(...normalizeAssetsFromData(response.value));
+      } else {
+        errors.push(response.reason);
+      }
+    }
+    const deduped = dedupeAssets(assets);
+    if (!deduped.length && errors.length) throw errors[errors.length - 1];
+    return deduped;
   }
 
   async function refreshAssets() {
@@ -298,27 +351,35 @@
   async function resolveAssetForInsert(asset) {
     if (utils.hasNativeAssetReference(asset)) return asset;
     if (!asset.id) return asset;
+    const raw = asset.raw || {};
+    const materialId =
+      asset.materialId ||
+      raw.material_id ||
+      raw.materialId ||
+      raw.metadata?.material_id ||
+      raw.metadata?.materialId ||
+      (!asset.assetGroupId ? asset.id : "");
+    const requests = [];
+    if (materialId) {
+      requests.push({
+        path: `/asset_library/detail?material_id=${encodeURIComponent(materialId)}`,
+      });
+    }
+    if (asset.id && asset.id !== materialId) {
+      requests.push({
+        path: `/asset_library/detail?material_id=${encodeURIComponent(asset.id)}`,
+      });
+    }
+    if (!requests.length) return asset;
     try {
-      const response = await bridgeApiAny([
-        {
-          path: `/asset_library/detail?asset_id=${encodeURIComponent(asset.id)}&locale=zh-CN`,
-        },
-        {
-          path: `/asset_library/detail?id=${encodeURIComponent(asset.id)}&locale=zh-CN`,
-        },
-      ]);
-      const detail = response.data?.asset || response.data?.detail || response.data?.item || response.data;
-      const normalized = utils.normalizeAssetCard({ ...asset.raw, ...detail });
-      return {
-        ...asset,
-        ...normalized,
-        id: normalized.id || asset.id,
-        name: normalized.name || asset.name,
-        description: normalized.description || asset.description,
-        kind: normalized.kind || asset.kind,
-        thumbnail: normalized.thumbnail || asset.thumbnail,
-        resourceIds: normalized.resourceIds.length ? normalized.resourceIds : asset.resourceIds,
-      };
+      const response = await bridgeApiAny(requests);
+      const detail = response.data || {};
+      const normalized = utils.normalizeAssetCard({
+        ...raw,
+        ...detail,
+        material_id: materialId || detail.material_id || detail.material?.material_id || raw.material_id,
+      });
+      return mergeAssetCards(asset, normalized);
     } catch (_error) {
       return asset;
     }
@@ -501,9 +562,12 @@
   }
 
   function assetCapsuleHtml(asset) {
-    const raw = escapeHtml(JSON.stringify(utils.assetRawPayload(asset)));
+    const payload = utils.assetRawPayload(asset);
+    const raw = escapeHtml(JSON.stringify(payload));
     const name = escapeHtml(asset.name);
-    return `<span class="espan capsule-resource fss-native-asset" contenteditable="false" draggable="true" data-raw="${raw}">
+    const type = payload.type === "asset" ? "asset_group" : "asset_library";
+    const resourceIds = payload.resource_ids ? ` data-resource-ids="${escapeHtml(JSON.stringify(payload.resource_ids))}"` : "";
+    return `<span class="espan capsule-resource fss-native-asset" contenteditable="false" draggable="true" data-raw="${raw}" data-type="${type}"${resourceIds}>
       <span class="fss-native-asset-mark">@</span>
       <span class="fss-native-asset-name">${name}</span>
     </span>`;
@@ -596,22 +660,27 @@
     state.message = "正在解析并插入当前选择...";
     render();
 
-    if (mainSkill) appendSkillCapsule(editor, mainSkill);
-
     const resolvedAssets = [];
     for (const asset of selectedAssets) {
       resolvedAssets.push(await resolveAssetForInsert(asset));
     }
     const nativeAssets = resolvedAssets.filter((asset) => utils.hasNativeAssetReference(asset));
-    const fallbackAssets = resolvedAssets.filter((asset) => !utils.hasNativeAssetReference(asset));
+    const blockedAssets = resolvedAssets.filter((asset) => !utils.hasNativeAssetReference(asset));
+
+    const auxPrompt = buildAuxiliaryPrompt(auxSkills, mainSkill);
+    if (!mainSkill && !auxPrompt && nativeAssets.length === 0) {
+      state.message = blockedAssets.length
+        ? utils.buildAssetBlockedMessage(blockedAssets)
+        : "没有可插入的内容。";
+      render();
+      return;
+    }
+
+    if (mainSkill) appendSkillCapsule(editor, mainSkill);
     for (const asset of nativeAssets) {
       appendAssetCapsule(editor, asset);
     }
-    if (fallbackAssets.length) {
-      appendPlainText(editor, utils.buildAssetFallbackPrompt(fallbackAssets));
-    }
 
-    const auxPrompt = buildAuxiliaryPrompt(auxSkills, mainSkill);
     if (auxPrompt) appendPlainText(editor, auxPrompt);
     placeCaretAtEnd(editor);
     notifyEditor(editor);
@@ -619,9 +688,10 @@
     const mainText = mainSkill ? `主：${mainSkill.name}` : "无主 Skill";
     const auxText = auxSkills.length ? `辅助 ${auxSkills.length} 个` : "无辅助";
     const assetText = selectedAssets.length
-      ? `资产 ${nativeAssets.length} 个原生引用${fallbackAssets.length ? `，${fallbackAssets.length} 个需人工 @ 确认` : ""}`
+      ? `资产 ${nativeAssets.length} 个原生引用${blockedAssets.length ? `，${blockedAssets.length} 个未插入` : ""}`
       : "无资产";
-    state.message = `已插入 ${mainText}，${auxText}，${assetText}。还没有发送，确认后再运行。`;
+    const blockedText = blockedAssets.length ? ` ${utils.buildAssetBlockedMessage(blockedAssets)}` : "";
+    state.message = `已插入 ${mainText}，${auxText}，${assetText}。还没有发送，确认后再运行。${blockedText}`;
     render();
   }
 

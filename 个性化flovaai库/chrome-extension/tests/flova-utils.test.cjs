@@ -37,25 +37,71 @@ test("normalizes asset cards from common Flova shapes", () => {
   });
 
   assert.equal(asset.id, "asset-1");
+  assert.equal(asset.assetGroupId, "asset-1");
   assert.equal(asset.name, "主角全身设定");
   assert.deepEqual(Array.from(asset.resourceIds), ["res-a", "res-b"]);
   assert.equal(asset.kind, "character");
 });
 
+test("normalizes Flova material detail into asset group references", () => {
+  const asset = utils.normalizeAssetCard({
+    material_id: "material-1",
+    display_name: "整张故事板资产",
+    material_type: "asset_resource",
+    category: "asset",
+    assets: [
+      {
+        assets_id: "asset-group-1",
+        name: "第一组镜头",
+        resources: [
+          { resource_id: "res-video-1", resource_type: "video", thumbnail_url: "https://example.com/a.jpg" },
+          { resource_id: "res-image-1", media_type: "image" },
+        ],
+      },
+    ],
+  });
+
+  assert.equal(asset.id, "asset-group-1");
+  assert.equal(asset.materialId, "material-1");
+  assert.equal(asset.assetGroupId, "asset-group-1");
+  assert.equal(asset.name, "整张故事板资产");
+  assert.deepEqual(Array.from(asset.resourceIds), ["res-video-1", "res-image-1"]);
+  assert.equal(asset.mediaType, "video");
+  assert.equal(utils.hasNativeAssetReference(asset), true);
+});
+
 test("builds a native asset raw payload that Flova can parse", () => {
   const raw = utils.assetRawPayload({
     id: "asset-1",
+    assetGroupId: "asset-1",
     name: "办公室场景",
     resourceIds: ["res-1", "res-2"],
-    kind: "scene",
+    mediaType: "image",
   });
 
   assert.equal(raw.type, "asset");
   assert.equal(raw.asset_id, "asset-1");
-  assert.equal(raw.asset_name, "办公室场景");
+  assert.equal(raw.media_type, "image");
   assert.deepEqual(Array.from(raw.resource_ids), ["res-1", "res-2"]);
-  assert.deepEqual(Array.from(raw.resourceIds), ["res-1", "res-2"]);
-  assert.equal(raw.asset_type, "scene");
+});
+
+test("builds an asset library raw payload when only material resource exists", () => {
+  const raw = utils.assetRawPayload(
+    utils.normalizeAssetCard({
+      material_id: "material-doc-1",
+      name: "项目说明文档",
+      material_type: "document",
+      category: "document",
+      resource_id: "resource-doc-1",
+      resource_type: "document",
+      cover_url: "https://example.com/doc.png",
+    }),
+  );
+
+  assert.equal(raw.type, "asset_library");
+  assert.equal(raw.material_id, "material-doc-1");
+  assert.equal(raw.resource_id, "resource-doc-1");
+  assert.equal(raw.resource_type, "document");
 });
 
 test("extracts nested asset menu groups", () => {
@@ -89,12 +135,13 @@ test("searches assets by Chinese, pinyin, and initials", () => {
   assert.equal(utils.searchAssetCards(cards, "cj")[0].id, "b");
 });
 
-test("builds a safe fallback prompt when native resource ids are missing", () => {
-  const prompt = utils.buildAssetFallbackPrompt([
+test("builds a blocked message instead of a sendable fallback prompt", () => {
+  const message = utils.buildAssetBlockedMessage([
     { id: "asset-1", name: "未解析资产", description: "详情读取失败", resourceIds: [] },
   ]);
 
-  assert.match(prompt, /未形成 Flova 原生引用/);
-  assert.match(prompt, /未解析资产/);
-  assert.match(prompt, /发送前/);
+  assert.match(message, /未插入/);
+  assert.match(message, /未解析资产/);
+  assert.match(message, /Flova 原生 @/);
+  assert.doesNotMatch(message, /asset_id:/);
 });

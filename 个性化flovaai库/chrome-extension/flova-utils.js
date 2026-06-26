@@ -157,46 +157,234 @@
     return result;
   }
 
-  function collectResourceIds(raw) {
-    const direct = firstValue(raw, ["resource_ids", "resourceIds", "resource_id_list", "resourceIdList"]);
-    const fromDirect = Array.isArray(direct) ? direct : [];
-    const resourceArrays = [
-      raw?.resources,
-      raw?.resource_list,
-      raw?.resourceList,
-      raw?.materials,
-      raw?.material_list,
-      raw?.items,
-    ].filter(Array.isArray);
-    const nested = resourceArrays.flatMap((items) =>
-      items.map((item) => firstValue(item, ["resource_id", "resourceId", "id"])),
-    );
-    return uniqueStrings([...fromDirect, ...nested]);
+  function isObject(value) {
+    return Boolean(value && typeof value === "object" && !Array.isArray(value));
   }
 
-  function normalizeAssetCard(raw) {
+  function mergedMaterialRaw(raw) {
+    if (!isObject(raw)) return raw || {};
+    const data = isObject(raw.data) ? raw.data : {};
+    const material = isObject(raw.material) ? raw.material : isObject(data.material) ? data.material : {};
+    const item = isObject(raw.item) ? raw.item : isObject(data.item) ? data.item : {};
+    return {
+      ...raw,
+      ...data,
+      ...material,
+      ...item,
+      assets: raw.assets || data.assets || material.assets || item.assets,
+      resources: raw.resources || data.resources || material.resources || item.resources,
+      previewResources:
+        raw.previewResources ||
+        raw.preview_resources ||
+        data.previewResources ||
+        data.preview_resources ||
+        material.previewResources ||
+        material.preview_resources ||
+        item.previewResources ||
+        item.preview_resources,
+      metadata: {
+        ...(isObject(raw.metadata) ? raw.metadata : {}),
+        ...(isObject(data.metadata) ? data.metadata : {}),
+        ...(isObject(material.metadata) ? material.metadata : {}),
+        ...(isObject(item.metadata) ? item.metadata : {}),
+      },
+    };
+  }
+
+  function firstDeepValue(raw, keys) {
+    return (
+      firstValue(raw, keys) ||
+      firstValue(raw?.metadata, keys) ||
+      firstValue(raw?.extra_data, keys) ||
+      firstValue(raw?.extraData, keys) ||
+      ""
+    );
+  }
+
+  function walk(value, visitor, parentKey = "", depth = 0) {
+    if (depth > 7 || value === null || value === undefined) return;
+    if (Array.isArray(value)) {
+      for (const item of value) walk(item, visitor, parentKey, depth + 1);
+      return;
+    }
+    if (!isObject(value)) return;
+    visitor(value, parentKey);
+    for (const [key, child] of Object.entries(value)) {
+      walk(child, visitor, key, depth + 1);
+    }
+  }
+
+  function valuesFromArrayField(raw, keys) {
+    const values = [];
+    for (const key of keys) {
+      const value = raw?.[key] || raw?.metadata?.[key];
+      if (Array.isArray(value)) values.push(...value);
+    }
+    return values;
+  }
+
+  function collectResourceIdsFromRaw(rawInput) {
+    const raw = mergedMaterialRaw(rawInput);
+    const ids = [];
+    ids.push(...valuesFromArrayField(raw, ["resource_ids", "resourceIds", "resource_id_list", "resourceIdList"]));
+    ids.push(firstDeepValue(raw, ["resource_id", "resourceId"]));
+
+    const resourceArrayKeys = new Set([
+      "resources",
+      "resource_list",
+      "resourceList",
+      "previewResources",
+      "preview_resources",
+      "generating_resources",
+      "generatingResources",
+      "completed_items",
+      "todo_items",
+    ]);
+
+    walk(raw, (item, parentKey) => {
+      ids.push(firstValue(item, ["resource_id", "resourceId"]));
+      ids.push(...valuesFromArrayField(item, ["resource_ids", "resourceIds", "resource_id_list", "resourceIdList"]));
+      if (resourceArrayKeys.has(parentKey)) ids.push(firstValue(item, ["id"]));
+    });
+
+    return uniqueStrings(ids);
+  }
+
+  function collectAssetGroupId(rawInput) {
+    const raw = mergedMaterialRaw(rawInput);
+    const direct = firstDeepValue(raw, ["assets_id", "assetsId", "asset_id", "assetId", "local_asset_id", "localAssetId"]);
+    if (direct) return normalizeStringId(direct);
+
+    let found = "";
+    walk(raw, (item, parentKey) => {
+      if (found) return;
+      if (["assets", "asset_groups", "assetGroups"].includes(parentKey)) {
+        found = firstValue(item, ["assets_id", "assetsId", "asset_id", "assetId", "local_asset_id", "localAssetId"]);
+      }
+    });
+    return normalizeStringId(found);
+  }
+
+  function collectThumbnailUrls(rawInput) {
+    const raw = mergedMaterialRaw(rawInput);
+    const urls = [];
+    const urlKeys = [
+      "cover_url",
+      "coverUrl",
+      "thumbnail_url",
+      "thumbnailUrl",
+      "thumbnail",
+      "image_url",
+      "imageUrl",
+      "url",
+      "resource_url",
+      "resourceUrl",
+      "poster_url",
+      "posterUrl",
+    ];
+    urls.push(firstDeepValue(raw, urlKeys));
+    urls.push(...valuesFromArrayField(raw, ["thumbnail_urls", "thumbnailUrls"]));
+
+    walk(raw, (item) => {
+      urls.push(firstValue(item, urlKeys));
+      urls.push(...valuesFromArrayField(item, ["thumbnail_urls", "thumbnailUrls"]));
+      const standard = item.standard_url || item.standardUrl || item.cover?.standard_url || item.cover?.standardUrl;
+      if (isObject(standard)) {
+        urls.push(standard.small, standard.medium, standard.large, standard.origin, standard.original);
+      }
+    });
+
+    return uniqueStrings(urls).filter((url) => /^https?:\/\//.test(url) || url.startsWith("/") || url.startsWith("data:image/"));
+  }
+
+  function normalizeMediaType(value) {
+    const text = String(value || "").trim().toLowerCase();
+    if (["image", "video", "audio", "music", "document"].includes(text)) return text;
+    if (text.includes("image")) return "image";
+    if (text.includes("video")) return "video";
+    if (text.includes("audio")) return "audio";
+    if (text.includes("music")) return "music";
+    if (text.includes("document") || text.includes("doc")) return "document";
+    return "";
+  }
+
+  function collectMediaType(rawInput) {
+    const raw = mergedMaterialRaw(rawInput);
+    const direct = normalizeMediaType(
+      firstDeepValue(raw, ["media_type", "mediaType", "resource_type", "resourceType", "asset_media_type", "assetMediaType"]),
+    );
+    if (direct) return direct;
+
+    let found = "";
+    walk(raw, (item) => {
+      if (found) return;
+      found = normalizeMediaType(
+        firstValue(item, ["media_type", "mediaType", "resource_type", "resourceType", "asset_media_type", "assetMediaType"]),
+      );
+    });
+    return found;
+  }
+
+  function collectResourceId(rawInput) {
+    const raw = mergedMaterialRaw(rawInput);
+    return normalizeStringId(firstDeepValue(raw, ["resource_id", "resourceId", "cover_resource_id", "coverResourceId"]));
+  }
+
+  function normalizeAssetCard(rawInput) {
+    const raw = mergedMaterialRaw(rawInput);
+    const materialId = normalizeStringId(firstDeepValue(raw, ["material_id", "materialId", "library_material_id", "libraryMaterialId"]));
+    const assetGroupId = collectAssetGroupId(raw);
+    const fallbackId = normalizeStringId(firstDeepValue(raw, ["id", "library_id", "libraryId"]));
     const id = normalizeStringId(
-      firstValue(raw, ["asset_id", "assetId", "library_id", "libraryId", "material_id", "materialId", "id"]),
+      assetGroupId || materialId || fallbackId,
     );
     const name = String(
-      firstValue(raw, ["asset_name", "assetName", "library_name", "libraryName", "material_name", "title", "name"]) ||
+      firstDeepValue(raw, [
+        "asset_name",
+        "assetName",
+        "display_name",
+        "displayName",
+        "library_name",
+        "libraryName",
+        "material_name",
+        "materialName",
+        "title",
+        "name",
+        "label",
+      ]) ||
         "未命名资产",
     );
     const description = String(
-      firstValue(raw, ["description", "asset_description", "assetDescription", "summary", "prompt", "content"]) || "",
+      firstDeepValue(raw, ["description", "asset_description", "assetDescription", "summary", "prompt", "content", "desc"]) ||
+        "",
     );
-    const kind = String(firstValue(raw, ["asset_type", "assetType", "resource_type", "resourceType", "type"]) || "");
-    const thumbnail = String(
-      firstValue(raw, ["cover_url", "coverUrl", "thumbnail_url", "thumbnailUrl", "image_url", "imageUrl", "url"]) || "",
+    const kind = String(
+      firstDeepValue(raw, ["asset_type", "assetType", "material_type", "materialType", "category", "resource_type", "resourceType", "type"]) ||
+        "",
     );
+    const thumbnails = collectThumbnailUrls(raw);
+    const resourceIds = collectResourceIdsFromRaw(raw);
+    const resourceId = collectResourceId(raw) || resourceIds[0] || "";
+    const mediaType = collectMediaType(raw) || normalizeMediaType(kind);
     return {
       id,
+      materialId,
+      assetGroupId,
       name,
       description,
       kind,
-      thumbnail,
-      resourceIds: collectResourceIds(raw),
-      raw,
+      thumbnail: thumbnails[0] || "",
+      thumbnailUrls: thumbnails,
+      resourceId,
+      resourceIds,
+      mediaType,
+      materialType: String(firstDeepValue(raw, ["material_type", "materialType"]) || kind || ""),
+      category: String(firstDeepValue(raw, ["category", "tab_type", "tabType"]) || ""),
+      coverUrl: String(firstDeepValue(raw, ["cover_url", "coverUrl"]) || thumbnails[0] || ""),
+      resourceUrl: String(firstDeepValue(raw, ["resource_url", "resourceUrl", "url"]) || ""),
+      resourceType: collectMediaType(raw) || "",
+      status: String(firstDeepValue(raw, ["status"]) || ""),
+      raw: rawInput || raw,
     };
   }
 
@@ -214,6 +402,8 @@
       data?.materialList,
       data?.data?.items,
       data?.data?.list,
+      data?.data?.materials,
+      data?.data?.records,
     ];
     const direct = candidates.find(Array.isArray);
     if (direct) return direct;
@@ -226,6 +416,12 @@
       data?.menu,
       data?.children,
       data?.nodes,
+      data?.asset_groups,
+      data?.assetGroups,
+      data?.metadata?.asset_groups,
+      data?.metadata?.assetGroups,
+      data?.metadata?.submenu_items,
+      data?.metadata?.submenuItems,
       data?.data?.groups,
       data?.data?.menus,
       data?.data?.children,
@@ -249,25 +445,58 @@
           "libraryId",
           "material_id",
           "materialId",
+          "assets_id",
+          "assetsId",
           "resource_ids",
           "resourceIds",
+          "resource_id",
+          "resourceId",
         ]),
     );
   }
 
   function assetRawPayload(asset) {
+    const resourceIds = uniqueStrings(asset?.resourceIds || []);
+    const assetId = normalizeStringId(asset?.assetGroupId || (!asset?.materialId ? asset?.id : ""));
+    if (assetId && resourceIds.length) {
+      const payload = {
+        type: "asset",
+        asset_id: assetId,
+        resource_ids: resourceIds,
+      };
+      const mediaType = normalizeMediaType(asset?.mediaType || asset?.resourceType || asset?.kind);
+      if (mediaType) payload.media_type = mediaType;
+      return payload;
+    }
+
+    const materialId = normalizeStringId(asset?.materialId || asset?.id);
+    const resourceId = normalizeStringId(asset?.resourceId || resourceIds[0]);
+    if (materialId && resourceId) {
+      return {
+        type: "asset_library",
+        material_id: materialId,
+        material_type: asset?.materialType || asset?.kind || "unknown",
+        category: asset?.category || undefined,
+        name: asset?.name || materialId,
+        cover_url: asset?.coverUrl || asset?.thumbnail || undefined,
+        status: asset?.status || undefined,
+        resource_id: resourceId,
+        resource_type: normalizeMediaType(asset?.resourceType || asset?.mediaType) || undefined,
+        resource_url: asset?.resourceUrl || undefined,
+      };
+    }
+
     return {
       type: "asset",
-      asset_id: asset.id,
-      asset_name: asset.name,
-      resource_ids: uniqueStrings(asset.resourceIds),
-      resourceIds: uniqueStrings(asset.resourceIds),
-      asset_type: asset.kind || "",
+      asset_id: assetId || materialId || "",
     };
   }
 
   function hasNativeAssetReference(asset) {
-    return Boolean(asset?.id && Array.isArray(asset.resourceIds) && asset.resourceIds.length > 0);
+    const payload = assetRawPayload(asset);
+    if (payload.type === "asset") return Boolean(payload.asset_id && Array.isArray(payload.resource_ids) && payload.resource_ids.length);
+    if (payload.type === "asset_library") return Boolean(payload.material_id && payload.resource_id);
+    return false;
   }
 
   function searchScore(item, rawQuery) {
@@ -298,21 +527,19 @@
       .map((item) => item.asset);
   }
 
-  function buildAssetFallbackPrompt(assets) {
+  function buildAssetBlockedMessage(assets) {
     if (!assets.length) return "";
     const lines = [
-      "",
-      "",
-      "【资产引用（未形成 Flova 原生引用）】",
-      "下面这些资产已由插件选中，但没有拿到可解析的 resource_id。发送前请用 Flova 原生 @ 功能人工确认一次，避免 Agent 看不到资产内容。",
+      "未插入以下资产：插件没有拿到 Flova 可解析的 resource_id。请用 Flova 原生 @ 功能重新选择一次。",
     ];
     for (const [index, asset] of assets.entries()) {
       const description = asset.description ? `：${asset.description.slice(0, 120)}` : "";
-      const idText = asset.id ? `（asset_id: ${asset.id}）` : "";
-      lines.push(`${index + 1}. ${asset.name}${idText}${description}`);
+      lines.push(`${index + 1}. ${asset.name}${description}`);
     }
     return lines.join("\n");
   }
+
+  const buildAssetFallbackPrompt = buildAssetBlockedMessage;
 
   return {
     PINYIN_HINTS,
@@ -325,6 +552,7 @@
     assetRawPayload,
     hasNativeAssetReference,
     searchAssetCards,
+    buildAssetBlockedMessage,
     buildAssetFallbackPrompt,
   };
 });
