@@ -4,7 +4,7 @@
   window.__flovaSkillStackSelectorInstalled = true;
 
   const AUX_LIMIT = 8;
-  const ASSET_LIMIT = 12;
+  const ASSET_LIMIT = 8;
   const utils = window.FlovaSelectorUtils;
 
   const state = {
@@ -23,7 +23,7 @@
     assets: [],
     selectedAssetIds: new Set(),
     composingSearch: false,
-    message: "点击刷新后读取公开 Skill、我的 Skill 或资产库。",
+    message: "点击刷新后读取公开 Skill、我的 Skill，或切到资产 @。",
   };
 
   const PINYIN_HINTS = [
@@ -105,6 +105,11 @@
     ["公开", "gongkai", "gk"],
     ["我的", "wode", "wd"],
     ["启用", "qiyong", "qy"],
+    ["资产", "zichan", "zc"],
+    ["素材", "sucai", "sc"],
+    ["资产库", "zichanku", "zck"],
+    ["音色", "yinse", "ys"],
+    ["音乐", "yinyue", "yy"],
     ["github", "github", "gh"],
     ["obsidian", "obsidian", "ob"],
   ];
@@ -140,37 +145,6 @@
           type: "api",
           path,
           options,
-        },
-        "*",
-      );
-    });
-  }
-
-  function bridgeApiAny(requests) {
-    const id = `flova-skill-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    return new Promise((resolve, reject) => {
-      const timer = window.setTimeout(() => {
-        window.removeEventListener("message", onMessage);
-        reject(new Error("读取 Flova 资产库超时，请确认已经登录。"));
-      }, 30000);
-
-      function onMessage(event) {
-        if (event.source !== window) return;
-        const message = event.data;
-        if (!message || message.source !== "flova-skill-selector-bridge" || message.id !== id) return;
-        window.clearTimeout(timer);
-        window.removeEventListener("message", onMessage);
-        if (message.ok) resolve(message.data);
-        else reject(new Error(message.error || "Flova API 调用失败"));
-      }
-
-      window.addEventListener("message", onMessage);
-      window.postMessage(
-        {
-          source: "flova-skill-selector",
-          id,
-          type: "apiAny",
-          requests,
         },
         "*",
       );
@@ -242,57 +216,25 @@
     }
   }
 
-  function normalizeAssetsFromData(data) {
-    return utils
-      .extractAssetItems(data)
-      .map((item) => utils.normalizeAssetCard(item))
-      .filter((asset) => asset.id);
-  }
-
-  function mergeAssetCards(base, next) {
-    return {
-      ...base,
-      ...next,
-      id: next.id || base.id,
-      materialId: next.materialId || base.materialId,
-      assetGroupId: next.assetGroupId || base.assetGroupId,
-      name: next.name && next.name !== "未命名资产" ? next.name : base.name,
-      description: next.description || base.description,
-      kind: next.kind || base.kind,
-      thumbnail: next.thumbnail || base.thumbnail,
-      thumbnailUrls: Array.from(new Set([...(base.thumbnailUrls || []), ...(next.thumbnailUrls || [])])),
-      resourceId: next.resourceId || base.resourceId,
-      resourceIds: Array.from(new Set([...(base.resourceIds || []), ...(next.resourceIds || [])])),
-      mediaType: next.mediaType || base.mediaType,
-      materialType: next.materialType || base.materialType,
-      category: next.category || base.category,
-      coverUrl: next.coverUrl || base.coverUrl,
-      resourceUrl: next.resourceUrl || base.resourceUrl,
-      resourceType: next.resourceType || base.resourceType,
-      status: next.status || base.status,
-      raw: { ...(base.raw || {}), ...(next.raw || {}) },
-    };
-  }
-
   function dedupeAssets(assets) {
     const byId = new Map();
     for (const asset of assets) {
-      const key = asset.assetGroupId || asset.materialId || asset.id;
-      if (!key) continue;
-      byId.set(key, byId.has(key) ? mergeAssetCards(byId.get(key), asset) : asset);
+      const key = asset.materialId || asset.id || asset.name;
+      if (!key || byId.has(key)) continue;
+      byId.set(key, asset);
     }
     return Array.from(byId.values());
   }
 
+  function normalizeAssetsFromData(data) {
+    return utils
+      .extractAssetItems(data)
+      .map((item) => utils.normalizeAssetForNativeMention(item))
+      .filter((asset) => asset.id || asset.name);
+  }
+
   async function loadAssets() {
-    const requests = [
-      "/asset_library/list?tab_type=media&page=1&page_size=100",
-      "/asset_library/list?tab_type=asset_resource&page=1&page_size=100",
-      "/asset_library/list?tab_type=asset&page=1&page_size=100",
-      "/asset_library/list?tab_type=resource&page=1&page_size=100",
-      "/asset_library/list?tab_type=storyboard&page=1&page_size=100",
-      "/asset_library/list?tab_type=document&page=1&page_size=100",
-      "/asset_library/list?tab_type=person&page=1&page_size=100",
+    const paths = [
       "/asset_library/reference_menu?page_size=100",
       "/asset_library/reference_menu?category=asset&page_size=100",
       "/asset_library/reference_menu?category=resource&page_size=100",
@@ -301,16 +243,18 @@
       "/asset_library/reference_menu?category=shot&page_size=100",
       "/asset_library/reference_menu?category=element&page_size=100",
       "/asset_library/reference_menu?category=audio_layer&page_size=100",
+      "/asset_library/list?tab_type=media&page=1&page_size=100",
+      "/asset_library/list?tab_type=asset_resource&page=1&page_size=100",
+      "/asset_library/list?tab_type=storyboard&page=1&page_size=100",
+      "/asset_library/list?tab_type=document&page=1&page_size=100",
+      "/asset_library/list?tab_type=person&page=1&page_size=100",
     ];
+    const responses = await Promise.allSettled(paths.map((path) => bridgeApi(path)));
     const assets = [];
     const errors = [];
-    const responses = await Promise.allSettled(requests.map((path) => bridgeApi(path)));
     for (const response of responses) {
-      if (response.status === "fulfilled") {
-        assets.push(...normalizeAssetsFromData(response.value));
-      } else {
-        errors.push(response.reason);
-      }
+      if (response.status === "fulfilled") assets.push(...normalizeAssetsFromData(response.value));
+      else errors.push(response.reason);
     }
     const deduped = dedupeAssets(assets);
     if (!deduped.length && errors.length) throw errors[errors.length - 1];
@@ -319,69 +263,17 @@
 
   async function refreshAssets() {
     state.assetsLoading = true;
-    state.message = "正在读取资产库...";
+    state.message = "正在读取资产库；插入时会走 Flova 原生 @。";
     render();
     try {
-      const assets = await loadAssets();
-      state.assets = assets;
+      state.assets = await loadAssets();
       state.assetsLoaded = true;
-      state.message = `已读取资产库：${assets.length} 张资产卡。`;
+      state.message = `已读取资产 ${state.assets.length} 个。选择后会让 Flova 原生 @ 来插入。`;
     } catch (error) {
       state.message = `资产库读取失败：${error?.message || String(error)}`;
     } finally {
       state.assetsLoading = false;
       render();
-    }
-  }
-
-  function allAssets() {
-    const byId = new Map();
-    for (const asset of state.assets) byId.set(asset.id, asset);
-    return Array.from(byId.values());
-  }
-
-  function assetById(id) {
-    return allAssets().find((asset) => asset.id === id) || null;
-  }
-
-  function combinedAssets() {
-    return utils.searchAssetCards(allAssets(), state.assetQuery.trim());
-  }
-
-  async function resolveAssetForInsert(asset) {
-    if (utils.hasNativeAssetReference(asset)) return asset;
-    if (!asset.id) return asset;
-    const raw = asset.raw || {};
-    const materialId =
-      asset.materialId ||
-      raw.material_id ||
-      raw.materialId ||
-      raw.metadata?.material_id ||
-      raw.metadata?.materialId ||
-      (!asset.assetGroupId ? asset.id : "");
-    const requests = [];
-    if (materialId) {
-      requests.push({
-        path: `/asset_library/detail?material_id=${encodeURIComponent(materialId)}`,
-      });
-    }
-    if (asset.id && asset.id !== materialId) {
-      requests.push({
-        path: `/asset_library/detail?material_id=${encodeURIComponent(asset.id)}`,
-      });
-    }
-    if (!requests.length) return asset;
-    try {
-      const response = await bridgeApiAny(requests);
-      const detail = response.data || {};
-      const normalized = utils.normalizeAssetCard({
-        ...raw,
-        ...detail,
-        material_id: materialId || detail.material_id || detail.material?.material_id || raw.material_id,
-      });
-      return mergeAssetCards(asset, normalized);
-    } catch (_error) {
-      return asset;
     }
   }
 
@@ -396,6 +288,16 @@
 
   function skillById(id) {
     return allSkills().find((skill) => skill.id === id) || null;
+  }
+
+  function allAssets() {
+    const byId = new Map();
+    for (const asset of state.assets) byId.set(asset.id || asset.materialId || asset.name, asset);
+    return Array.from(byId.values());
+  }
+
+  function assetById(id) {
+    return allAssets().find((asset) => asset.id === id || asset.materialId === id || asset.name === id) || null;
   }
 
   function auxiliaryScore(skill) {
@@ -516,6 +418,23 @@
     return score;
   }
 
+  function assetSearchScore(asset, rawQuery) {
+    const tokens = normalizeSearchText(rawQuery).split(" ").filter(Boolean);
+    if (!tokens.length) return 1;
+    const nameText = searchableTextFor(asset.name);
+    const fullText = searchableTextFor(`${asset.name} ${asset.description} ${asset.kind}`);
+    let score = 0;
+    for (const token of tokens) {
+      if (nameText === token) score += 120;
+      else if (nameText.includes(token)) score += 80;
+      else if (fullText.includes(token)) score += 35;
+      else if (token.length >= 3 && isSubsequence(token, fullText)) score += 8;
+      else return 0;
+    }
+    if (asset.kind) score += 1;
+    return score;
+  }
+
   function combinedSkills() {
     const q = state.query.trim();
     const skills = allSkills().filter((skill) => {
@@ -533,6 +452,17 @@
       .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score)
       .map((item) => item.skill);
+  }
+
+  function combinedAssets() {
+    const q = state.assetQuery.trim();
+    const assets = allAssets();
+    if (!q) return assets;
+    return assets
+      .map((asset) => ({ asset, score: assetSearchScore(asset, q) }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((item) => item.asset);
   }
 
   function escapeHtml(value) {
@@ -558,18 +488,6 @@
         <path d="m11.215 8.198-.758-1.131.807-.961a2.2 2.2 0 0 0 .14-1.843 2.2 2.2 0 0 0-1.719-1.401l-1.42.284-.877-1.212a2.2 2.2 0 0 0-2.826-.656 2.2 2.2 0 0 0-1 1.96l-.113 1.495-1.345.332a2.2 2.2 0 0 0-1.1 3.311 2.2 2.2 0 0 0 .715.608l.512.211" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
       </svg>
       <span class="capsule-strategy-name">${name}</span>
-    </span>`;
-  }
-
-  function assetCapsuleHtml(asset) {
-    const payload = utils.assetRawPayload(asset);
-    const raw = escapeHtml(JSON.stringify(payload));
-    const name = escapeHtml(asset.name);
-    const type = payload.type === "asset" ? "asset_group" : "asset_library";
-    const resourceIds = payload.resource_ids ? ` data-resource-ids="${escapeHtml(JSON.stringify(payload.resource_ids))}"` : "";
-    return `<span class="espan capsule-resource fss-native-asset" contenteditable="false" draggable="true" data-raw="${raw}" data-type="${type}"${resourceIds}>
-      <span class="fss-native-asset-mark">@</span>
-      <span class="fss-native-asset-name">${name}</span>
     </span>`;
   }
 
@@ -605,17 +523,130 @@
     editor.insertAdjacentHTML("beforeend", `${capsuleHtml(skill)}<span class="cursor-anchor">\u200b</span>`);
   }
 
-  function appendAssetCapsule(editor, asset) {
-    const raw = JSON.stringify(utils.assetRawPayload(asset));
-    const currentRawText = editor.getAttribute("data-rawtext") || "";
-    editor.setAttribute("data-rawtext", `${currentRawText}\`${raw}\` `);
-    editor.insertAdjacentHTML("beforeend", `${assetCapsuleHtml(asset)}<span class="cursor-anchor">\u200b</span>`);
-  }
-
   function appendPlainText(editor, text) {
     const currentRawText = editor.getAttribute("data-rawtext") || "";
     editor.setAttribute("data-rawtext", `${currentRawText}${text}`);
     editor.insertAdjacentHTML("beforeend", textToEditorHtml(text));
+  }
+
+  function delay(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+  }
+
+  function editorSnapshot(editor) {
+    return {
+      html: editor.innerHTML,
+      rawText: editor.getAttribute("data-rawtext"),
+    };
+  }
+
+  function restoreEditorSnapshot(editor, snapshot) {
+    editor.innerHTML = snapshot.html;
+    if (snapshot.rawText === null || snapshot.rawText === undefined) editor.removeAttribute("data-rawtext");
+    else editor.setAttribute("data-rawtext", snapshot.rawText);
+    notifyEditor(editor);
+  }
+
+  function isVisibleElement(element) {
+    if (!element || element.closest("#flova-skill-stack-selector-root")) return false;
+    const rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+    return rect.width > 0 && rect.height > 0 && style.visibility !== "hidden" && style.display !== "none";
+  }
+
+  function nativeAssetCapsuleCount(editor) {
+    return editor.querySelectorAll(
+      [
+        '.capsule-resource:not(.capsule-strategy)',
+        '.capsule-character',
+        '[data-type="asset_group"]',
+        '[data-type="asset_library"]',
+        '[data-raw*="\\"asset_library\\""]',
+        '[data-raw*="\\"type\\":\\"asset\\""]',
+      ].join(","),
+    ).length;
+  }
+
+  function nativeAssetRawTextLooksPresent(editor) {
+    const rawText = editor.getAttribute("data-rawtext") || "";
+    return rawText.includes('"type":"asset_library"') || rawText.includes('"type":"asset"');
+  }
+
+  function insertTextAtCursor(editor, text) {
+    placeCaretAtEnd(editor);
+    if (!document.execCommand("insertText", false, text)) {
+      editor.appendChild(document.createTextNode(text));
+    }
+    notifyEditor(editor);
+  }
+
+  function candidateScore(element, asset) {
+    const text = (element.innerText || element.textContent || "").replace(/\s+/g, " ").trim();
+    if (!text) return 0;
+    const normalizedText = normalizeSearchText(text);
+    const name = normalizeSearchText(asset.name);
+    const query = normalizeSearchText(asset.mentionQuery);
+    if (name && normalizedText === name) return 100;
+    if (name && normalizedText.includes(name)) return 80;
+    if (query && normalizedText.includes(query)) return 60;
+    if (asset.materialId && text.includes(asset.materialId)) return 40;
+    return 0;
+  }
+
+  function findNativeMentionCandidate(asset) {
+    const panelSelectors = [
+      "[data-popover-panel]",
+      '[role="listbox"]',
+      "[cmdk-list]",
+      '[class*="popover"]',
+      '[class*="Popover"]',
+      '[class*="mention"]',
+      '[class*="Mention"]',
+    ];
+    const panels = Array.from(document.querySelectorAll(panelSelectors.join(","))).filter(isVisibleElement);
+    const roots = panels.length ? panels : [document.body];
+    const candidates = [];
+    for (const root of roots) {
+      candidates.push(
+        ...Array.from(
+          root.querySelectorAll(
+            [
+              "button",
+              '[role="option"]',
+              "[cmdk-item]",
+              "[data-value]",
+              "[data-index]",
+              "li",
+              ".item",
+            ].join(","),
+          ),
+        ).filter(isVisibleElement),
+      );
+    }
+    return candidates
+      .map((element) => ({ element, score: candidateScore(element, asset) }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)[0]?.element;
+  }
+
+  async function insertNativeAssetMention(editor, asset) {
+    const beforeCount = nativeAssetCapsuleCount(editor);
+    const beforeRawText = editor.getAttribute("data-rawtext") || "";
+    const mentionText = ` @${asset.mentionQuery}`;
+    insertTextAtCursor(editor, mentionText);
+    await delay(650);
+
+    const candidate = findNativeMentionCandidate(asset);
+    if (!candidate) return { ok: false, reason: `没有找到 Flova 原生 @ 候选项：${asset.name}` };
+    candidate.click();
+    await delay(650);
+
+    const afterCount = nativeAssetCapsuleCount(editor);
+    const afterRawText = editor.getAttribute("data-rawtext") || "";
+    if (afterCount > beforeCount || (afterRawText !== beforeRawText && nativeAssetRawTextLooksPresent(editor))) {
+      return { ok: true };
+    }
+    return { ok: false, reason: `Flova 没有生成原生资产胶囊：${asset.name}` };
   }
 
   function buildAuxiliaryPrompt(auxSkills, mainSkill) {
@@ -652,46 +683,36 @@
       .filter(Boolean);
 
     if (!mainSkill && auxSkills.length === 0 && selectedAssets.length === 0) {
-      state.message = "先选择主 Skill、辅助 Skill 或资产卡。";
+      state.message = "先选择主 Skill、辅助 Skill，或至少选择一个资产。";
       render();
       return;
     }
 
-    state.message = "正在解析并插入当前选择...";
-    render();
-
-    const resolvedAssets = [];
-    for (const asset of selectedAssets) {
-      resolvedAssets.push(await resolveAssetForInsert(asset));
-    }
-    const nativeAssets = resolvedAssets.filter((asset) => utils.hasNativeAssetReference(asset));
-    const blockedAssets = resolvedAssets.filter((asset) => !utils.hasNativeAssetReference(asset));
-
-    const auxPrompt = buildAuxiliaryPrompt(auxSkills, mainSkill);
-    if (!mainSkill && !auxPrompt && nativeAssets.length === 0) {
-      state.message = blockedAssets.length
-        ? utils.buildAssetBlockedMessage(blockedAssets)
-        : "没有可插入的内容。";
+    if (selectedAssets.length) {
+      const snapshot = editorSnapshot(editor);
+      state.message = `正在通过 Flova 原生 @ 插入 ${selectedAssets.length} 个资产...`;
       render();
-      return;
+      for (const asset of selectedAssets) {
+        const result = await insertNativeAssetMention(editor, asset);
+        if (!result.ok) {
+          restoreEditorSnapshot(editor, snapshot);
+          state.message = `${result.reason}。输入框已恢复，未插入伪资产引用。请手动用 Flova 原生 @ 选择该资产。`;
+          render();
+          return;
+        }
+      }
     }
 
     if (mainSkill) appendSkillCapsule(editor, mainSkill);
-    for (const asset of nativeAssets) {
-      appendAssetCapsule(editor, asset);
-    }
-
+    const auxPrompt = buildAuxiliaryPrompt(auxSkills, mainSkill);
     if (auxPrompt) appendPlainText(editor, auxPrompt);
     placeCaretAtEnd(editor);
     notifyEditor(editor);
 
     const mainText = mainSkill ? `主：${mainSkill.name}` : "无主 Skill";
     const auxText = auxSkills.length ? `辅助 ${auxSkills.length} 个` : "无辅助";
-    const assetText = selectedAssets.length
-      ? `资产 ${nativeAssets.length} 个原生引用${blockedAssets.length ? `，${blockedAssets.length} 个未插入` : ""}`
-      : "无资产";
-    const blockedText = blockedAssets.length ? ` ${utils.buildAssetBlockedMessage(blockedAssets)}` : "";
-    state.message = `已插入 ${mainText}，${auxText}，${assetText}。还没有发送，确认后再运行。${blockedText}`;
+    const assetText = selectedAssets.length ? `资产 @ ${selectedAssets.length} 个` : "无资产";
+    state.message = `已插入 ${mainText}，${auxText}，${assetText}。还没有发送，确认后再运行。`;
     render();
   }
 
@@ -721,14 +742,15 @@
   }
 
   function toggleAsset(asset) {
-    if (state.selectedAssetIds.has(asset.id)) {
-      state.selectedAssetIds.delete(asset.id);
+    const id = asset.id || asset.materialId || asset.name;
+    if (state.selectedAssetIds.has(id)) {
+      state.selectedAssetIds.delete(id);
       state.message = `已移除资产：${asset.name}`;
     } else if (state.selectedAssetIds.size >= ASSET_LIMIT) {
-      state.message = `资产卡最多选择 ${ASSET_LIMIT} 张，先移除一个再添加。`;
+      state.message = `资产最多选择 ${ASSET_LIMIT} 个，先移除一个再添加。`;
     } else {
-      state.selectedAssetIds.add(asset.id);
-      state.message = `已加入资产：${asset.name}`;
+      state.selectedAssetIds.add(id);
+      state.message = `已选择资产：${asset.name}。插入时会走 Flova 原生 @。`;
     }
     render();
   }
@@ -824,6 +846,14 @@
       .fss-close { width: 30px; height: 30px; }
       .fss-refresh { min-height: 30px; padding: 0 10px; }
       .fss-controls { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+      .fss-mode-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .fss-mode { min-height: 30px; padding: 0 12px; font-size: 12px; font-weight: 700; }
+      .fss-mode-active { background: rgba(34,197,94,.22); border-color: rgba(74,222,128,.5); }
       .fss-search {
         width: 100%;
         height: 38px;
@@ -835,21 +865,6 @@
         outline: none;
         padding: 0 12px;
         font-size: 13px;
-      }
-      .fss-mode-tabs {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-      .fss-mode {
-        min-height: 32px;
-        font-size: 12px;
-        font-weight: 800;
-      }
-      .fss-mode-active {
-        background: rgba(14,165,233,.22);
-        border-color: rgba(56,189,248,.46);
       }
       .fss-tabs {
         display: flex;
@@ -901,8 +916,8 @@
         border-color: rgba(74,222,128,.42);
       }
       .fss-chip-asset {
-        background: rgba(14,165,233,.16);
-        border-color: rgba(56,189,248,.42);
+        background: rgba(14,165,233,.14);
+        border-color: rgba(56,189,248,.38);
       }
       .fss-chip-name {
         overflow: hidden;
@@ -954,6 +969,26 @@
         border: 1px solid transparent;
       }
       .fss-item:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.08); }
+      .fss-asset-row {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 10px;
+        align-items: center;
+        min-width: 0;
+      }
+      .fss-thumb {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: rgba(255,255,255,.08);
+      }
+      .fss-thumb-fallback {
+        display: grid;
+        place-items: center;
+        color: rgba(248,250,252,.76);
+        font-weight: 800;
+      }
       .fss-name { font-size: 13px; font-weight: 800; line-height: 1.35; }
       .fss-desc { margin-top: 5px; color: rgba(248,250,252,.66); font-size: 12px; line-height: 1.45; }
       .fss-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
@@ -965,51 +1000,11 @@
         font-size: 11px;
       }
       .fss-badge-assist { color: #bbf7d0; border-color: rgba(74,222,128,.34); }
-      .fss-badge-asset { color: #bae6fd; border-color: rgba(56,189,248,.34); }
       .fss-actions { display: flex; flex-direction: column; gap: 7px; align-items: stretch; }
       .fss-action { min-width: 76px; min-height: 30px; padding: 0 10px; font-size: 12px; white-space: nowrap; }
       .fss-action-main { background: rgba(16,185,129,.2); border-color: rgba(52,211,153,.45); }
       .fss-action-active { background: rgba(14,165,233,.22); border-color: rgba(56,189,248,.46); }
       .fss-action:disabled, .fss-refresh:disabled { opacity: .55; cursor: default; }
-      .fss-asset-row {
-        display: grid;
-        grid-template-columns: 48px 1fr auto;
-        gap: 10px;
-        align-items: center;
-      }
-      .fss-thumb {
-        width: 48px;
-        height: 48px;
-        border-radius: 8px;
-        object-fit: cover;
-        background: rgba(255,255,255,.08);
-        border: 1px solid rgba(255,255,255,.1);
-      }
-      .fss-thumb-fallback {
-        display: grid;
-        place-items: center;
-        color: rgba(248,250,252,.55);
-        font-weight: 800;
-        font-size: 18px;
-      }
-      .fss-native-asset {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        max-width: 220px;
-        margin: 0 3px;
-        padding: 2px 8px;
-        border-radius: 999px;
-        background: rgba(14,165,233,.16);
-        color: #e0f2fe;
-        border: 1px solid rgba(56,189,248,.45);
-        vertical-align: middle;
-      }
-      .fss-native-asset-name {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
       .fss-empty { padding: 30px 12px; text-align: center; color: rgba(248,250,252,.58); font-size: 13px; }
       @media (max-width: 720px) {
         #flova-skill-stack-selector-root {
@@ -1021,9 +1016,6 @@
         }
         .fss-item {
           grid-template-columns: 1fr;
-        }
-        .fss-asset-row {
-          grid-template-columns: 42px 1fr;
         }
         .fss-actions {
           flex-direction: row;
@@ -1077,12 +1069,15 @@
         render();
       } else if (action === "remove-asset" && assetId) {
         state.selectedAssetIds.delete(assetId);
-        state.message = "已移除一张资产卡。";
+        state.message = "已移除一个资产。";
         render();
       } else if (action === "clear-selection") {
         clearSelection();
       } else if (action === "insert-selected") {
-        insertCurrentStack();
+        insertCurrentStack().catch((error) => {
+          state.message = `插入失败：${error?.message || String(error)}。未发送任何消息。`;
+          render();
+        });
       } else if (action === "save" && skill) {
         savePublicSkill(skill);
       }
@@ -1094,9 +1089,6 @@
     const mainSkill = state.mainSkillId ? skillById(state.mainSkillId) : null;
     const auxSkills = Array.from(state.auxSkillIds)
       .map((id) => skillById(id))
-      .filter(Boolean);
-    const selectedAssets = Array.from(state.selectedAssetIds)
-      .map((id) => assetById(id))
       .filter(Boolean);
     const mainHtml = mainSkill
       ? `<span class="fss-chip fss-chip-main"><span class="fss-chip-name">${escapeHtml(mainSkill.name)}</span><button class="fss-chip-button" data-fss-action="clear-main" aria-label="移除主 Skill">x</button></span>`
@@ -1111,12 +1103,12 @@
       : `<span class="fss-placeholder">可选择多个辅助 Skill</span>`;
     const assetHtml = selectedAssets.length
       ? selectedAssets
-          .map(
-            (asset) =>
-              `<span class="fss-chip fss-chip-asset"><span class="fss-chip-name">${escapeHtml(asset.name)}</span><button class="fss-chip-button" data-fss-action="remove-asset" data-asset-id="${escapeHtml(asset.id)}" aria-label="移除资产">x</button></span>`,
-          )
+          .map((asset) => {
+            const id = asset.id || asset.materialId || asset.name;
+            return `<span class="fss-chip fss-chip-asset"><span class="fss-chip-name">${escapeHtml(asset.name)}</span><button class="fss-chip-button" data-fss-action="remove-asset" data-asset-id="${escapeHtml(id)}" aria-label="移除资产">x</button></span>`;
+          })
           .join("")
-      : `<span class="fss-placeholder">可选择整张资产卡</span>`;
+      : `<span class="fss-placeholder">资产会通过 Flova 原生 @ 插入</span>`;
 
     return `
       <div class="fss-stack">
@@ -1129,7 +1121,7 @@
           <div class="fss-chip-list">${auxHtml}</div>
         </div>
         <div class="fss-stack-row">
-          <div class="fss-stack-label">资产</div>
+          <div class="fss-stack-label">资产 @</div>
           <div class="fss-chip-list">${assetHtml}</div>
         </div>
         <div class="fss-compose-actions">
@@ -1186,73 +1178,60 @@
     const assetRows = combinedAssets()
       .slice(0, 100)
       .map((asset) => {
-        const selected = state.selectedAssetIds.has(asset.id);
-        const badges = [
-          asset.kind || "资产卡",
-          asset.resourceIds.length ? `原生资源 ${asset.resourceIds.length}` : "待解析详情",
-        ]
+        const id = asset.id || asset.materialId || asset.name;
+        const selected = state.selectedAssetIds.has(id);
+        const badges = [asset.kind || "资产", "原生 @"]
           .filter(Boolean)
-          .map((text) => `<span class="fss-badge fss-badge-asset">${escapeHtml(text)}</span>`)
+          .map((text) => `<span class="fss-badge fss-badge-assist">${escapeHtml(text)}</span>`)
           .join("");
         const thumb = asset.thumbnail
           ? `<img class="fss-thumb" src="${escapeHtml(asset.thumbnail)}" alt="" loading="lazy" />`
-          : `<div class="fss-thumb fss-thumb-fallback">F</div>`;
+          : `<div class="fss-thumb fss-thumb-fallback">@</div>`;
         return `<div class="fss-item">
           <div class="fss-asset-row">
             ${thumb}
             <div>
               <div class="fss-name">${escapeHtml(asset.name)}</div>
-              <div class="fss-desc">${escapeHtml(truncateText(asset.description || "整张资产卡引用", 150))}</div>
+              <div class="fss-desc">${escapeHtml(truncateText(asset.description || "将通过 Flova 原生 @ 选择器插入", 150))}</div>
               <div class="fss-badges">${badges}</div>
             </div>
-            <div class="fss-actions">
-              <button class="fss-action ${selected ? "fss-action-active" : ""}" data-fss-action="toggle-asset" data-asset-id="${escapeHtml(asset.id)}">${selected ? "已选择" : "选资产"}</button>
-            </div>
+          </div>
+          <div class="fss-actions">
+            <button class="fss-action ${selected ? "fss-action-active" : ""}" data-fss-action="toggle-asset" data-asset-id="${escapeHtml(id)}">${selected ? "已选择" : "选资产"}</button>
           </div>
         </div>`;
       })
       .join("");
     const rows = isAssetMode ? assetRows : skillRows;
-    const searchPlaceholder = isAssetMode
-      ? "搜索资产库：角色 / 场景 / 故事板 / 音色 / 拼音"
-      : "搜索公开 Skill / 我的 Skill / 作者 / 描述";
-    const modeTabs = `
-      <div class="fss-mode-tabs">
-        ${modeButton("skills", "Skill")}
-        ${modeButton("assets", "资产库")}
-      </div>
-    `;
-    const skillTabs = `
-      <div class="fss-tabs">
-        ${tabButton("all", "全部")}
-        ${tabButton("mine", "我的")}
-        ${tabButton("public", "公开")}
-        ${tabButton("enabled", "已启用")}
-        ${tabButton("aux", "辅助建议")}
-      </div>
-    `;
-    const assetTabs = `
-      <div class="fss-tabs">
-        <button class="fss-tab fss-tab-active" type="button">整张资产卡</button>
-        <button class="fss-tab" type="button" disabled>单素材后续版本</button>
-      </div>
-    `;
     const refreshing = isAssetMode ? state.assetsLoading : state.loading;
 
     root.innerHTML = `
-      <button class="fss-launcher" data-fss-action="open">Skill / 资产</button>
-      <section class="fss-panel" aria-label="Flova Skill 与资产桥接器">
+      <button class="fss-launcher" data-fss-action="open">Skill / 原生 @</button>
+      <section class="fss-panel" aria-label="Flova Skill 与原生 @ 助手">
         <div class="fss-header">
-          <div class="fss-title">Skill 与资产桥接器</div>
+          <div class="fss-title">Skill 与原生 @ 助手</div>
           <div class="fss-header-actions">
             <button class="fss-refresh" data-fss-action="refresh" ${refreshing ? "disabled" : ""}>刷新</button>
             <button class="fss-close" data-fss-action="close" aria-label="关闭">x</button>
           </div>
         </div>
         <div class="fss-controls">
-          ${modeTabs}
-          <input class="fss-search" value="${escapeHtml(currentQuery)}" placeholder="${escapeHtml(searchPlaceholder)}" />
-          ${isAssetMode ? assetTabs : skillTabs}
+          <div class="fss-mode-tabs">
+            ${modeButton("skills", "Skill")}
+            ${modeButton("assets", "资产 @")}
+          </div>
+          <input class="fss-search" value="${escapeHtml(currentQuery)}" placeholder="${isAssetMode ? "搜索资产：角色 / 场景 / 故事板 / 音色" : "搜索公开 Skill / 我的 Skill / 作者 / 描述"}" />
+          ${
+            isAssetMode
+              ? `<div class="fss-tabs"><button class="fss-tab fss-tab-active" type="button">Flova 原生 @</button><button class="fss-tab" type="button" disabled>不伪造引用</button></div>`
+              : `<div class="fss-tabs">
+                  ${tabButton("all", "全部")}
+                  ${tabButton("mine", "我的")}
+                  ${tabButton("public", "公开")}
+                  ${tabButton("enabled", "已启用")}
+                  ${tabButton("aux", "辅助建议")}
+                </div>`
+          }
         </div>
         ${selectedStackHtml()}
         <div class="fss-status">${escapeHtml(state.message)}</div>
@@ -1267,8 +1246,8 @@
       root.classList.add("fss-open");
       const input = root.querySelector(".fss-search");
       input?.focus();
-      const nextLength = state.mode === "assets" ? state.assetQuery.length : state.query.length;
-      input?.setSelectionRange(nextLength, nextLength);
+      const length = state.mode === "assets" ? state.assetQuery.length : state.query.length;
+      input?.setSelectionRange(length, length);
     };
     search?.addEventListener("compositionstart", () => {
       state.composingSearch = true;
@@ -1279,8 +1258,7 @@
     });
     search?.addEventListener("input", (event) => {
       if (state.composingSearch || event.isComposing) {
-        if (state.mode === "assets") state.assetQuery = event.target.value;
-        else state.query = event.target.value;
+        state.query = event.target.value;
         return;
       }
       rerenderSearch(event.target.value);

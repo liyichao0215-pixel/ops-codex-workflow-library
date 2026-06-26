@@ -27,121 +27,71 @@ function test(name, fn) {
   }
 }
 
-test("normalizes asset cards from common Flova shapes", () => {
-  const asset = utils.normalizeAssetCard({
-    asset_id: "asset-1",
-    asset_name: "主角全身设定",
-    description: "用于连续短剧的固定角色",
-    resource_ids: ["res-a", "res-b"],
-    type: "character",
-  });
-
-  assert.equal(asset.id, "asset-1");
-  assert.equal(asset.assetGroupId, "asset-1");
-  assert.equal(asset.name, "主角全身设定");
-  assert.deepEqual(Array.from(asset.resourceIds), ["res-a", "res-b"]);
-  assert.equal(asset.kind, "character");
-});
-
-test("normalizes Flova material detail into asset group references", () => {
-  const asset = utils.normalizeAssetCard({
+test("normalizes Flova asset records for native @ search only", () => {
+  const asset = utils.normalizeAssetForNativeMention({
     material_id: "material-1",
-    display_name: "整张故事板资产",
-    material_type: "asset_resource",
-    category: "asset",
-    assets: [
-      {
-        assets_id: "asset-group-1",
-        name: "第一组镜头",
-        resources: [
-          { resource_id: "res-video-1", resource_type: "video", thumbnail_url: "https://example.com/a.jpg" },
-          { resource_id: "res-image-1", media_type: "image" },
-        ],
-      },
-    ],
+    display_name: "Ava 角色资产",
+    description: "短剧女主角固定资产",
+    category: "person",
   });
 
-  assert.equal(asset.id, "asset-group-1");
+  assert.equal(asset.id, "material-1");
   assert.equal(asset.materialId, "material-1");
-  assert.equal(asset.assetGroupId, "asset-group-1");
-  assert.equal(asset.name, "整张故事板资产");
-  assert.deepEqual(Array.from(asset.resourceIds), ["res-video-1", "res-image-1"]);
-  assert.equal(asset.mediaType, "video");
-  assert.equal(utils.hasNativeAssetReference(asset), true);
+  assert.equal(asset.name, "Ava 角色资产");
+  assert.equal(asset.mentionQuery, "Ava 角色资产");
+  assert.equal(asset.kind, "person");
+  assert.equal(Object.hasOwn(asset, "resourceIds"), false);
 });
 
-test("builds a native asset raw payload that Flova can parse", () => {
-  const raw = utils.assetRawPayload({
-    id: "asset-1",
-    assetGroupId: "asset-1",
-    name: "办公室场景",
-    resourceIds: ["res-1", "res-2"],
-    mediaType: "image",
-  });
-
-  assert.equal(raw.type, "asset");
-  assert.equal(raw.asset_id, "asset-1");
-  assert.equal(raw.media_type, "image");
-  assert.deepEqual(Array.from(raw.resource_ids), ["res-1", "res-2"]);
-});
-
-test("builds an asset library raw payload when only material resource exists", () => {
-  const raw = utils.assetRawPayload(
-    utils.normalizeAssetCard({
-      material_id: "material-doc-1",
-      name: "项目说明文档",
-      material_type: "document",
-      category: "document",
-      resource_id: "resource-doc-1",
-      resource_type: "document",
-      cover_url: "https://example.com/doc.png",
+test("builds native mention plans instead of synthetic asset payloads", () => {
+  const plan = utils.buildNativeMentionPlan([
+    utils.normalizeAssetForNativeMention({
+      material_id: "material-1",
+      name: "办公室场景",
+      resource_ids: ["res-should-not-be-used"],
     }),
-  );
+  ]);
 
-  assert.equal(raw.type, "asset_library");
-  assert.equal(raw.material_id, "material-doc-1");
-  assert.equal(raw.resource_id, "resource-doc-1");
-  assert.equal(raw.resource_type, "document");
+  assert.deepEqual(JSON.parse(JSON.stringify(plan)), [
+    {
+      action: "native-at-mention",
+      query: "办公室场景",
+      name: "办公室场景",
+      materialId: "material-1",
+    },
+  ]);
+  assert.equal(JSON.stringify(plan).includes("resource_id"), false);
+  assert.equal(JSON.stringify(plan).includes("asset_id"), false);
 });
 
-test("extracts nested asset menu groups", () => {
+test("rejects old fallback text and synthetic asset JSON", () => {
+  assert.equal(
+    utils.isSyntheticAssetReferenceText("【资产引用（未形成 Flova 原生引用）】 asset_id: xxx"),
+    true,
+  );
+  assert.equal(
+    utils.isSyntheticAssetReferenceText('`{"type":"asset","asset_id":"xxx","resource_ids":["res"]}`'),
+    true,
+  );
+  assert.equal(utils.isSyntheticAssetReferenceText("请使用 Flova 原生 @ 选择 Ava 角色资产"), false);
+});
+
+test("extracts nested asset items from reference menu shapes", () => {
   const items = utils.extractAssetItems({
     groups: [
       {
-        title: "角色",
-        children: [{ asset_id: "asset-a", asset_name: "角色卡" }],
+        label: "角色",
+        children: [{ id: "a", label: "Ava", metadata: { material_id: "material-a" } }],
       },
       {
-        title: "场景",
-        items: [{ asset_id: "asset-b", asset_name: "场景卡" }],
+        label: "场景",
+        items: [{ material_id: "material-b", name: "办公室" }],
       },
     ],
   });
 
   assert.deepEqual(
-    Array.from(items.map((item) => item.asset_id)),
-    ["asset-a", "asset-b"],
+    JSON.parse(JSON.stringify(items.map((item) => utils.normalizeAssetForNativeMention(item).name))),
+    ["Ava", "办公室"],
   );
-});
-
-test("searches assets by Chinese, pinyin, and initials", () => {
-  const cards = [
-    utils.normalizeAssetCard({ id: "a", name: "校园角色卡", description: "主角" }),
-    utils.normalizeAssetCard({ id: "b", name: "厨房场景", description: "家庭短剧" }),
-  ];
-
-  assert.equal(utils.searchAssetCards(cards, "角色")[0].id, "a");
-  assert.equal(utils.searchAssetCards(cards, "juese")[0].id, "a");
-  assert.equal(utils.searchAssetCards(cards, "cj")[0].id, "b");
-});
-
-test("builds a blocked message instead of a sendable fallback prompt", () => {
-  const message = utils.buildAssetBlockedMessage([
-    { id: "asset-1", name: "未解析资产", description: "详情读取失败", resourceIds: [] },
-  ]);
-
-  assert.match(message, /未插入/);
-  assert.match(message, /未解析资产/);
-  assert.match(message, /Flova 原生 @/);
-  assert.doesNotMatch(message, /asset_id:/);
 });

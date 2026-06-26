@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Flova Skill 与资产桥接器",
-  "version": "0.3.1",
-  "description": "在 Flova 项目页搜索公开 Skill、我的 Skill 和资产库，组合主 Skill、辅助 Skill 与资产引用后插入到对话输入框。",
+  "name": "Flova Skill 与原生 @ 助手",
+  "version": "0.4.0",
+  "description": "在 Flova 项目页搜索公开 Skill、我的 Skill 和资产库；资产只通过 Flova 原生 @ 选择器插入。",
   "permissions": [],
   "host_permissions": [
     "https://www.flova.ai/*",
