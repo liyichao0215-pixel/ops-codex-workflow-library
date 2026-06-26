@@ -24,6 +24,22 @@
     return json.data;
   }
 
+  async function apiAny(requests = []) {
+    let lastError = null;
+    for (const request of requests) {
+      try {
+        const data = await apiRequest(request.path, request.options || {});
+        return {
+          used: request.path,
+          data,
+        };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error("No Flova API candidates provided");
+  }
+
   window.addEventListener("message", async (event) => {
     if (event.source !== window) return;
     const message = event.data;
@@ -33,6 +49,8 @@
       let data;
       if (message.type === "api") {
         data = await apiRequest(message.path, message.options || {});
+      } else if (message.type === "apiAny") {
+        data = await apiAny(message.requests || []);
       } else {
         throw new Error(`Unsupported bridge action: ${message.type}`);
       }
