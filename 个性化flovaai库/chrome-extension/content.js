@@ -533,6 +533,16 @@
     return new Promise((resolve) => window.setTimeout(resolve, ms));
   }
 
+  async function waitForCondition(check, timeout = 3000, interval = 100) {
+    const startedAt = Date.now();
+    let value = check();
+    while (!value && Date.now() - startedAt < timeout) {
+      await delay(interval);
+      value = check();
+    }
+    return value;
+  }
+
   function editorSnapshot(editor) {
     return {
       html: editor.innerHTML,
@@ -567,9 +577,11 @@
     ).length;
   }
 
-  function nativeAssetRawTextLooksPresent(editor) {
-    const rawText = editor.getAttribute("data-rawtext") || "";
-    return rawText.includes('"type":"asset_library"') || rawText.includes('"type":"asset"');
+  function nativeAssetMentionState(editor) {
+    return {
+      capsuleCount: nativeAssetCapsuleCount(editor),
+      rawText: editor.getAttribute("data-rawtext") || "",
+    };
   }
 
   function insertTextAtCursor(editor, text) {
@@ -629,21 +641,29 @@
       .sort((a, b) => b.score - a.score)[0]?.element;
   }
 
+  function clickNativeCandidate(candidate) {
+    candidate.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    candidate.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, view: window }));
+    candidate.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true, view: window }));
+    candidate.click();
+  }
+
   async function insertNativeAssetMention(editor, asset) {
-    const beforeCount = nativeAssetCapsuleCount(editor);
-    const beforeRawText = editor.getAttribute("data-rawtext") || "";
+    const beforeState = nativeAssetMentionState(editor);
     const mentionText = ` @${asset.mentionQuery}`;
     insertTextAtCursor(editor, mentionText);
-    await delay(650);
 
-    const candidate = findNativeMentionCandidate(asset);
+    const candidate = await waitForCondition(() => findNativeMentionCandidate(asset), 4000, 120);
     if (!candidate) return { ok: false, reason: `没有找到 Flova 原生 @ 候选项：${asset.name}` };
-    candidate.click();
-    await delay(650);
+    clickNativeCandidate(candidate);
 
-    const afterCount = nativeAssetCapsuleCount(editor);
-    const afterRawText = editor.getAttribute("data-rawtext") || "";
-    if (afterCount > beforeCount || (afterRawText !== beforeRawText && nativeAssetRawTextLooksPresent(editor))) {
+    const inserted = await waitForCondition(
+      () => utils.hasNewNativeAssetMention(beforeState, nativeAssetMentionState(editor)),
+      4000,
+      120,
+    );
+    if (inserted) {
+      placeCaretAtEnd(editor);
       return { ok: true };
     }
     return { ok: false, reason: `Flova 没有生成原生资产胶囊：${asset.name}` };
@@ -692,7 +712,9 @@
       const snapshot = editorSnapshot(editor);
       state.message = `正在通过 Flova 原生 @ 插入 ${selectedAssets.length} 个资产...`;
       render();
-      for (const asset of selectedAssets) {
+      for (const [index, asset] of selectedAssets.entries()) {
+        state.message = `正在通过 Flova 原生 @ 插入资产 ${index + 1}/${selectedAssets.length}：${asset.name}`;
+        render();
         const result = await insertNativeAssetMention(editor, asset);
         if (!result.ok) {
           restoreEditorSnapshot(editor, snapshot);

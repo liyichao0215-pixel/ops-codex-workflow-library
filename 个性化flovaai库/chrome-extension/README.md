@@ -1,6 +1,6 @@
 # Flova Skill 与原生 @ 助手
 
-这是“Flova 全 Skill 搜索”的 v0.4 本地 Chrome 增强插件。代码从 v0.2.1 的“主 Skill + 辅助 Skill”稳定版重新开始，资产功能改为“Flova 原生 @ 代理”。
+这是“Flova 全 Skill 搜索”的 v0.4.1 本地 Chrome 增强插件。代码从 v0.2.1 的“主 Skill + 辅助 Skill”稳定版重新开始，资产功能改为“Flova 原生 @ 代理”。
 
 ## 能做什么
 
@@ -15,7 +15,7 @@
 
 ## 重要边界
 
-Flova 当前项目页仍然只会原生激活一个 Skill。v0.4 的“辅助 Skill”不会伪装成多个 Skill 同时运行，而是把辅助 Skill 的名称和简介转成提示词规则，让主 Skill 在执行时参考这些辅助能力。
+Flova 当前项目页仍然只会原生激活一个 Skill。v0.4.1 的“辅助 Skill”不会伪装成多个 Skill 同时运行，而是把辅助 Skill 的名称和简介转成提示词规则，让主 Skill 在执行时参考这些辅助能力。
 
 资产功能不再生成 `asset_id`、`resource_id` 或“未形成原生引用”的兜底文本。插件只会尝试打开 Flova 原生 `@` 搜索、输入资产名、点击 Flova 原生候选项，并检查输入框里是否真的出现原生资源胶囊。失败时会恢复输入框并提示你手动 `@`，不会插入伪引用。
 
@@ -46,12 +46,13 @@ Flova 当前项目页仍然只会原生激活一个 Skill。v0.4 的“辅助 Sk
 
 ## 触发方式
 
-以后进入任何 Flova 项目页，只要 Chrome 启用了这个 v0.4 扩展，就可以点击右下角的“Skill / 原生 @”使用。
+以后进入任何 Flova 项目页，只要 Chrome 启用了这个 v0.4.1 扩展，就可以点击右下角的“Skill / 原生 @”使用。
 
 ## 测试
 
 ```bash
 node tests/flova-utils.test.cjs
+node tests/content-smoke.test.cjs
 node --check flova-utils.js
 node --check content.js
 node --check page-bridge.js

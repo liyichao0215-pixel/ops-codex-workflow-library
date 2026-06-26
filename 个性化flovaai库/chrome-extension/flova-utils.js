@@ -124,10 +124,23 @@
     );
   }
 
+  function countNativeAssetMarkers(rawText) {
+    const source = String(rawText || "");
+    return (source.match(/"type"\s*:\s*"(?:asset_library|asset)"/g) || []).length;
+  }
+
+  function hasNewNativeAssetMention(before = {}, after = {}) {
+    const beforeCapsuleCount = Number(before.capsuleCount || 0);
+    const afterCapsuleCount = Number(after.capsuleCount || 0);
+    if (afterCapsuleCount > beforeCapsuleCount) return true;
+    return countNativeAssetMarkers(after.rawText) > countNativeAssetMarkers(before.rawText);
+  }
+
   return {
     normalizeAssetForNativeMention,
     extractAssetItems,
     buildNativeMentionPlan,
     isSyntheticAssetReferenceText,
+    hasNewNativeAssetMention,
   };
 });

@@ -76,6 +76,34 @@ test("rejects old fallback text and synthetic asset JSON", () => {
   assert.equal(utils.isSyntheticAssetReferenceText("请使用 Flova 原生 @ 选择 Ava 角色资产"), false);
 });
 
+test("does not treat plain typed @ text as another native asset mention", () => {
+  const before = {
+    capsuleCount: 1,
+    rawText: '`{"type":"asset_library","display_name":"Element_KungFu_Raccoon_Mischief"}` ',
+  };
+  const after = {
+    capsuleCount: 1,
+    rawText: '`{"type":"asset_library","display_name":"Element_KungFu_Raccoon_Mischief"}` @Element_Ava_Homeowner',
+  };
+
+  assert.equal(utils.hasNewNativeAssetMention(before, after), false);
+});
+
+test("detects a newly inserted native asset mention", () => {
+  assert.equal(utils.hasNewNativeAssetMention({ capsuleCount: 1, rawText: "" }, { capsuleCount: 2, rawText: "" }), true);
+  assert.equal(
+    utils.hasNewNativeAssetMention(
+      { capsuleCount: 1, rawText: '`{"type":"asset_library","display_name":"A"}` ' },
+      {
+        capsuleCount: 1,
+        rawText:
+          '`{"type":"asset_library","display_name":"A"}` `{"type":"asset","display_name":"B"}` ',
+      },
+    ),
+    true,
+  );
+});
+
 test("extracts nested asset items from reference menu shapes", () => {
   const items = utils.extractAssetItems({
     groups: [
