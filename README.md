@@ -12,6 +12,7 @@ M1 云端内测版准备中。当前目标是让 2-3 位同事可以打开一个
 
 ## 近期工作成果
 
+- Flova 教程视频协同包：把教程视频返工里的高频问题沉淀成 Codex Skill、SOP、问题诊断表和朋友领取提示词，适合复用到 FlovaAI / AI 工具 / 软件教程视频制作。
 - 个性化 FlovaAI 库：把 Flova 项目页全 Skill 搜索插件、公开 Skill 路由、Codex 沟通 skill 和朋友可复用安装说明放在独立目录中。
 - FlovaAI Skill 路由沉淀：Codex 先判断适合使用哪个官方公开 Skill，再生成项目对话提示词和人工边界。
 - Codex / GitHub / Obsidian 工作流：把工具、插件、skill、复盘卡点和安装说明沉淀为团队可检索资产。
@@ -25,6 +26,7 @@ apps/web          静态前端
 apps/api          Node + SQLite 后端
 data              种子资产
 skills            可安装或可复用的 Codex skill
+docs/Flova教程视频协同包  教程视频制作 SOP、朋友领取提示词和使用说明
 个性化flovaai库   FlovaAI 个性化浏览器插件和 Codex 沟通 skill
 docs              产品、部署、内测和审核说明
 scripts           备份和导出脚本

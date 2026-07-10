@@ -1,0 +1,4 @@
+interface:
+  display_name: "教程视频协同质检"
+  short_description: "把教程视频的常见返工点转成可执行的诊断、修复与验收流程"
+  default_prompt: "Use $flova-tutorial-video-coordination to inspect the real audio timeline, diagnose tutorial-video issues, make local fixes, and report segmented QA status."
