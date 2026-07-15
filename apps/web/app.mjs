@@ -51,7 +51,7 @@ const resultTitle = document.querySelector('#resultTitle');
 const resultCount = document.querySelector('#resultCount');
 const assetList = document.querySelector('#assetList');
 const detailPanel = document.querySelector('#detailPanel');
-const feishuSubmissionUrl = 'https://flova-team.feishu.cn/wiki/EIiMws2CoiJD0fkBjV4cldM2nFc?from=from_copylink';
+const feishuSubmissionUrl = String(window.OPS_CONFIG?.feishuSubmissionUrl || '').trim();
 
 let selectedAssetId = null;
 let activeAssets = workflowAssets;
@@ -563,13 +563,22 @@ submitToolToWebsite.addEventListener('click', async () => {
   }
 
   if (isStaticDeploy()) {
+    const submissionMessage = feishuSubmissionUrl
+      ? [
+          'GitHub Pages 版本没有后端写入能力，联调投稿统一走已配置的飞书多维表格。',
+          '',
+          `飞书联调表：${feishuSubmissionUrl}`,
+        ]
+      : [
+          'GitHub Pages 版本没有后端写入能力，且公开配置没有包含私人飞书链接。',
+          '',
+          '请复制上传提示，或由维护者在本地 config.js 中配置投稿入口。',
+        ];
     showOutput(
       '静态分享版',
-      '请把这条内容填到飞书联调表',
+      feishuSubmissionUrl ? '请把这条内容填到飞书联调表' : '当前未配置投稿入口',
       [
-        'GitHub Pages 版本没有后端写入能力，联调投稿统一走飞书多维表格。',
-        '',
-        `飞书联调表：${feishuSubmissionUrl}`,
+        ...submissionMessage,
         '',
         '建议填入：名称、类型、适用岗位、用途摘要、原始投稿内容、投稿人、审核状态。',
       ].join('\n'),
