@@ -27,7 +27,7 @@ export function buildUploadToolPrompt(input = {}) {
   const url = valueOrPlaceholder(input.url, '请粘贴工具或文档链接');
   const role = valueOrPlaceholder(input.role, '请根据用途判断');
   const description = valueOrPlaceholder(input.description, '请根据工具内容总结');
-  const submissionUrl = valueOrPlaceholder(input.submissionUrl, 'https://flova-team.feishu.cn/wiki/EIiMws2CoiJD0fkBjV4cldM2nFc?from=from_copylink');
+  const submissionUrl = valueOrPlaceholder(input.submissionUrl, '请由维护者提供投稿 API 或飞书表链接');
   const usesApiSubmission = submissionUrl.includes('/api/submissions');
 
   return [

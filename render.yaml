@@ -33,4 +33,4 @@ services:
       - key: FEISHU_AUDIT_TABLE_ID
         sync: false
       - key: FEISHU_WIKI_HOME_URL
-        value: https://flova-team.feishu.cn/wiki/F6fewvK1nitUoLkphfRc4xE4n3b
+        sync: false

@@ -1,3 +1,4 @@
 window.OPS_CONFIG = {
-  apiBase: 'same-origin'
+  apiBase: 'same-origin',
+  feishuSubmissionUrl: ''
 };

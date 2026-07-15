@@ -52,7 +52,7 @@ test('maps approved asset fields between API shape and Feishu fields', () => {
     primaryCategory: '提示词包',
     summary: '把会议纪要整理成周报。',
     url: 'https://example.com/tool',
-    wikiUrl: 'https://flova-team.feishu.cn/wiki/demo',
+    wikiUrl: 'https://example.feishu.cn/wiki/demo',
     tools: ['Codex', 'Feishu'],
     tasks: ['周报整理'],
     inputs: ['会议纪要'],
@@ -68,7 +68,7 @@ test('maps approved asset fields between API shape and Feishu fields', () => {
   const fields = assetToFeishuFields(asset);
   assert.equal(fields['资产ID'], 'asset-demo');
   assert.equal(fields['资产标题'], '会议纪要转周报');
-  assert.equal(fields['知识库详情页'], 'https://flova-team.feishu.cn/wiki/demo');
+  assert.equal(fields['知识库详情页'], 'https://example.feishu.cn/wiki/demo');
   assert.equal(fields['工具或链接'], 'https://example.com/tool');
   assert.equal(fields['审核状态'], '已审核');
   assert.equal(fields['输入材料'], '会议纪要');
@@ -630,7 +630,7 @@ FEISHU_ASSETS_TABLE_ID=
 FEISHU_SUBMISSIONS_TABLE_ID=
 FEISHU_DUPLICATES_TABLE_ID=
 FEISHU_AUDIT_TABLE_ID=
-FEISHU_WIKI_HOME_URL=https://flova-team.feishu.cn/wiki/F6fewvK1nitUoLkphfRc4xE4n3b
+FEISHU_WIKI_HOME_URL=https://your-team.feishu.cn/wiki/replace-with-your-home
 ```
 
 - [ ] **Step 4: Verify all tests pass**
@@ -677,7 +677,7 @@ FEISHU_ASSETS_TABLE_ID=<工作流资产表 table id>
 FEISHU_SUBMISSIONS_TABLE_ID=<投稿审核池 table id>
 FEISHU_DUPLICATES_TABLE_ID=<重复与更新记录 table id>
 FEISHU_AUDIT_TABLE_ID=<审核日志与管理员表 table id>
-FEISHU_WIKI_HOME_URL=https://flova-team.feishu.cn/wiki/F6fewvK1nitUoLkphfRc4xE4n3b
+FEISHU_WIKI_HOME_URL=https://your-team.feishu.cn/wiki/replace-with-your-home
 ```
 
 - [ ] **Step 3: Deploy and smoke test**
